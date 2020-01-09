@@ -7,10 +7,10 @@
 #rot_vel - The rotational velocity of the robot
 #frequency - The frequency of the control loop
 
-x: 0
-y: 0
-width: 1
-height: 1
-trans_vel: 0.5
+x: 3
+y: 2
+width: 4
+height: 5
+trans_vel: 2
 rot_vel: 1
 frequency: 100
