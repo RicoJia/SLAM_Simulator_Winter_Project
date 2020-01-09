@@ -11,4 +11,6 @@ enum class State{
     go_forward,
     turn
 };
+
+bool traj_reset_callback();
 #endif //TSIM_TURTLE_RECT_H

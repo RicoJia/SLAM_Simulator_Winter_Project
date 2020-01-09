@@ -4,7 +4,10 @@
 #include "turtlesim/SetPen.h"
 #include "turtlesim/TeleportAbsolute.h"
 #include "geometry_msgs/Twist.h"
+#include "tsim/traj_reset.h"
+#include "std_srvs/Empty.h"
 
+bool reset_now = false;
 void drop_pen(ros::NodeHandle nh, bool status)
 {
     ros::service::waitForService("/turtle1/set_pen", 100);
@@ -31,13 +34,19 @@ void teleport_2_bottom(ros::NodeHandle nh, double x, double y)
     teleport_client.call(teleportabsolute_srv);
 }
 
+bool traj_reset_callback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response){
+    reset_now = true;
+    return true;
+}
+
 int main(int argc, char**argv)
 {
-    ros::init(argc, argv,"turtle_rect");
-    ros::NodeHandle nh;
-
     double x, y, width, height, trans_vel, rot_vel;
     int frequency;
+    ros::init(argc, argv,"turtle_rect");
+    ros::NodeHandle nh;
+    //setup service
+    ros::ServiceServer service = nh.advertiseService("traj_reset", traj_reset_callback);
 
     if (nh.getParam("/turtle_rect/x", x)){      //How to get rid of turtle_rect??
         ROS_INFO("x: %f", x);
@@ -71,6 +80,10 @@ int main(int argc, char**argv)
     ros::Time init_time = ros::Time::now();
     double turn_time = 3.1415927/2.0/rot_vel;
     while (ros::ok){
+        if (reset_now == true){
+            teleport_2_bottom(nh, x, y);
+            reset_now = false;
+        }
         geometry_msgs::Twist msg;
         if (turtle_state == State ::go_forward){
             msg.linear.x = trans_vel;
