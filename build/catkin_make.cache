@@ -1,0 +1,2 @@
+tsim
+-DCATKIN_DEVEL_PREFIX=/home/ricojia/main-assignment-RicoJia/devel -DCMAKE_INSTALL_PREFIX=/home/ricojia/main-assignment-RicoJia/install -G Unix Makefiles

@@ -11,6 +11,7 @@
 ///    frequency - The frequency of the control loop
 /// PUBLISHES:
 ///     /pose_error (tsim/PoseError): The error between pose estimation from dead-reckoning and the real pose.
+///     /turtle1/cmd_vel (geometry_msgs/Twist): velocity command to turtlesim
 /// SUBSCRIBES:
 ///    /turtle1/pose (turtlesim/Pose)
 /// SERVICES:
