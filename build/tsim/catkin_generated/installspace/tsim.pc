@@ -1,8 +1,0 @@
-prefix=/home/ricojia/main-assignment-RicoJia/install
-
-Name: tsim
-Description: Description of tsim
-Version: 0.0.0
-Cflags: -I/home/ricojia/main-assignment-RicoJia/install/include
-Libs: -L/home/ricojia/main-assignment-RicoJia/install/lib 
-Requires: geometry_msgs message_runtime roscpp std_srvs
