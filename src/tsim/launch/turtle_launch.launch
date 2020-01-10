@@ -1,7 +1,0 @@
-<launch>
-<node name = "roaming_turtle" pkg="turtlesim" type="turtlesim_node" required="true"/>
-
-  <node name = "turtle_rect" pkg = "tsim"  type = "turtle_rect" output="screen" >
-    <rosparam file="$(find tsim)/config/params.yaml" />
-  </node>
-</launch>
