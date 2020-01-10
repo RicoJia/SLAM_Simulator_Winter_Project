@@ -35,13 +35,13 @@ $ roslaunch tsim trect.launch rqt_plot_on:=false
 To call the service, do
 ```$ rosservice call /traj_reset```
 
-#####Publishers
+##### Publishers
 - ``` /pose_error (tsim/PoseError)``` Error between pose estimation from dead-reckoning and the real pose.
 To echo the publisher, do ```$ rostopic echo /pose_error ```
 
 - ``` /turtle1/cmd_vel (geometry_msgs/Twist)``` Velocity command to turtlesim. Velocity control is achieved through open loop feedforward control, i.e, we assume turtlebot will move exactly as commanded. 
 
-#####rqt_plot
+##### rqt_plot
 In this section, you will see constant x and y pose errors between the x and y dead reckoning estimation and 
 the real x and y pose (dead-reckoning estimations come solely from velocity commands). The theta pose error was caclculated with 
 angle [wrapping mechanism](https://stackoverflow.com/questions/11498169/dealing-with-angle-wrap-in-c-code), so the angle is always within [-pi, pi].
