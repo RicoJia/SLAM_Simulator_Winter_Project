@@ -7,6 +7,11 @@ Author: Ruotong Rico Jia
 - Task B.002 (subscriber and service)
 - Task B.003 (trect.launch)
 - Task B.004 (documentation)
+- Task C.000 (library implementation)
+- Task C.001 (main implementation)
+- Task C.002 (conceptual questions)
+- Task C.003 (adjoints and twists)
+- Task C.004 (test)
 # Tasks Completed
 (List the tasks that you finished in previous assignments here)
 

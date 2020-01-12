@@ -11,6 +11,15 @@ This project is an educational project where I became familiar with essential Ro
 In this project, turtlesim is launched and a turtle travels along a rectangular trajectory. The turtle will first be teleported to the lower left corner 
 of the rectangle, then start travelling along the rectangle's sides. The velocity Its position can also be reset to the lower left corner of the box, (its trajectory is not reset).
 
+![Screenshot from 2020-01-11 16-54-35](https://user-images.githubusercontent.com/39393023/72211777-9ce1bd80-3496-11ea-8479-eff77049fdb7.png)
+
+Rqt_plot can be turned on and off for visualizing pose errors
+
+<img src=https://user-images.githubusercontent.com/39393023/72211778-9ce1bd80-3496-11ea-9e7a-d642f5dab618.png width="600">
+
+For live demo, checkout my Youtube Channel:
+
+[![Screenshot from 2020-01-11 20-44-54](https://user-images.githubusercontent.com/39393023/72213356-53ec3200-34b3-11ea-8b13-6b6d63b2d0af.png)](https://www.youtube.com/embed/YcYuIzouRaE)
 
 ### System setup
 
