@@ -2,6 +2,11 @@
 Author: Ruotong Rico Jia
 # Tasks Submitted
 (List the tasks that you worked on and completed here)
+- Task A.000 (nuturtle_description package)
+- Task A.001 (Yaml File)
+- Task A.002 (Xacro File: Visual Only)
+- Task A.003 (Launch File)
+- Task A.004 (README)
 - Task B.000 (tsim package)
 - Task B.001 (turtle_rect node)
 - Task B.002 (subscriber and service)

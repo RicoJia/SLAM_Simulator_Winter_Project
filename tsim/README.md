@@ -36,6 +36,15 @@ To turn off rqt_plot, do
 ```
 $ roslaunch tsim trect.launch rqt_plot_on:=false
 ```
+### File List
+
+- config/params.yaml - Parameters for turtlesim control
+- launch/trect.launch - launch file for the project
+- msg/PoseError.msg - Msg file for publishing topic /pose_error  
+- src/turtle_rect.cpp - node for turtle's trajectory control 
+- src/turtle_rect.h - Header file for turtle_rect.cpp
+- srv/traj_reset.srv - Service for resetting turtle's position
+
 
 ### Design 
 
