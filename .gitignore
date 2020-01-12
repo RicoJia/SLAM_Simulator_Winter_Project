@@ -1,3 +1,5 @@
 .idea
 .catkin_workspace
+.o
+rigid2d_test
 
