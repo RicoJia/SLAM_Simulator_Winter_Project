@@ -1,5 +1,5 @@
 #!/bin/sh
-g++ -o ./test.o ./test1.cpp ./rigid2d.cpp
+g++ -o ./test.o ./main.cpp ./rigid2d.cpp
 
 if [ -a ./test1_input.txt ];
 then
