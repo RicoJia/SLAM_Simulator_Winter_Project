@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="diff_drive">
+    <xacro:property name="diff_params" value="${load_yaml('$(find nuturtle_description)/config/diff_params.yaml')}" />
+
+    <xacro:property name="grey_mat">
+     <material name="arm_grey_mat">
+       <color rgba="0.75 0.75 0.75 1.0" />
+     </material>
+    </xacro:property>
+
+    <xacro:property name="yellow_mat">
+     <material name="arm_yellow_mat">
+       <color rgba="1 1 0 1.0" />
+     </material>
+    </xacro:property>
+
+    <xacro:property name="pink_mat">
+     <material name="arm_pink_mat">
+       <color rgba="1 0.078 0.363 1.0" />
+     </material>
+    </xacro:property>
+
+    <xacro:macro name="wheel" params="name color origin_xyz origin_rpy width radius">
+     <link name="${name}">
+       <visual>
+         <origin xyz="${origin_xyz}" rpy="${origin_rpy}"/>
+         <geometry>
+             <cylinder length="${width}" radius="${radius}"/>
+          </geometry>
+          <xacro:if value="${color=='yellow'}">
+            <xacro:insert_block name="yellow_mat"/>
+          </xacro:if>
+          <xacro:if value="${color=='grey'}">
+            <xacro:insert_block name="grey_mat"/>
+          </xacro:if>
+       </visual>
+     </link>
+    </xacro:macro>
+
+    <xacro:macro name="_joint" params="name type origin_xyz origin_rpy parent child axis">
+        <joint name="${name}" type="${type}">
+        <origin rpy="${origin_rpy}" xyz="${origin_xyz}"/>
+        <parent link="${parent}" />
+        <child link="${child}" />
+        <xacro:if value="${type=='continuous'}">
+        <limit effort="100" velocity="100" />
+        <axis xyz="${axis}"/>
+        </xacro:if>
+        </joint>
+    </xacro:macro>
+
+
+    <!--    link-->
+
+    <link name="base_link">
+    <visual>
+     <origin xyz="${0.5*diff_params['chassis_length']-diff_params['wheel_width']} 0 ${0.5*diff_params['chassis_thickness']}" rpy="0 0 0"/>
+     <geometry>
+         <box size="${diff_params['chassis_length']} ${diff_params['wheel_base']-diff_params['wheel_width']} ${diff_params['chassis_thickness']}"/>
+      </geometry>
+        <xacro:insert_block name="yellow_mat"/>
+    </visual>
+    </link>
+
+    <xacro:_joint name="left_wheel_axle"
+           type="continuous"
+           origin_xyz = "0.0 ${0.5*diff_params['wheel_base']} 0.0" origin_rpy="0 0 0"
+           parent = "base_link"
+           child = "left_wheel"
+           axis = "0 1 0"/>
+
+    <xacro:wheel name="left_wheel"
+             color="grey"
+             origin_xyz="0 0 0" origin_rpy="${+pi/2.0} 0 0"
+             width="${diff_params['wheel_width']}"
+             radius="${diff_params['wheel_radius']}"/>
+
+    <xacro:_joint name="right_wheel_axle"
+        type="continuous"
+        origin_xyz = "0.0 ${-0.5*diff_params['wheel_base']} 0.0" origin_rpy="0.0 0.0 0.0"
+        parent = "base_link"
+        child = "right_wheel"
+        axis = "0 1 0"/>
+
+    <xacro:wheel name="right_wheel"
+             color="grey"
+             origin_xyz="0 0 0" origin_rpy="${+pi/2.0} 0 0"
+             width="${diff_params['wheel_width']}"
+             radius="${diff_params['wheel_radius']}"/>
+
+    <xacro:_joint name="base_link_ball_caster"
+      type="fixed"
+      origin_xyz = "${diff_params['chassis_length']-1.5*diff_params['wheel_radius']} 0.0 ${-diff_params['wheel_radius']*0.5}" origin_rpy="0.0 0.0 0.0"
+      parent = "base_link"
+      child = "ball_caster"
+      axis = "0 1 0"/>
+
+      <link name="ball_caster">
+        <visual>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <geometry>
+              <sphere radius="${diff_params['wheel_radius']*0.5}"/>
+           </geometry>
+             <xacro:insert_block name="pink_mat"/>
+        </visual>
+      </link>
+
+
+</robot>
+
