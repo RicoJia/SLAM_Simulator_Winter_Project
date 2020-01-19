@@ -81,6 +81,7 @@ rigid2d::Transform2D rigid2d::operator*(rigid2d::Transform2D lhs, const rigid2d:
     return lhs*=rhs;
 }
 
+
 std::ostream & rigid2d::operator<<(std::ostream & os, const rigid2d::Twist2D & v){
     os<<"["<<v.theta<<endl<<" "<<v.x<<endl<<" "<<v.y<<"]"<<endl;
     return os;
@@ -137,3 +138,50 @@ rigid2d::Transform2D rigid2d::integrateTwist(const rigid2d::Twist2D& twist){
     }
 }
 
+//-------------------------Vector2D Functions
+rigid2d::Vector2D& rigid2d::Vector2D::operator-=(const rigid2d::Vector2D& rhs){
+    x -= rhs.x; y-=rhs.y;
+    return *this;
+}
+
+rigid2d::Vector2D& rigid2d::Vector2D::operator+=(const rigid2d::Vector2D& rhs){
+    x += rhs.x; y +=rhs.y;
+    return *this;
+}
+
+rigid2d::Vector2D& rigid2d::Vector2D::operator*=(const double& rhs){
+    x *=rhs; y*=rhs;
+    return *this;
+}
+
+rigid2d::Vector2D rigid2d::operator*(const double& lhs,  rigid2d::Vector2D rhs){
+    rhs*=lhs;
+    return rhs;
+}
+
+rigid2d::Vector2D rigid2d::operator*(rigid2d::Vector2D lhs, const double& rhs){
+    lhs*=rhs;
+    return lhs;
+}
+
+rigid2d::Vector2D rigid2d::operator+(rigid2d::Vector2D lhs, const rigid2d::Vector2D& rhs){
+    lhs+=rhs;
+    return lhs;
+}
+
+rigid2d::Vector2D rigid2d::operator-(rigid2d::Vector2D lhs, const rigid2d::Vector2D& rhs){
+    lhs-=rhs;
+    return lhs;
+}
+
+double rigid2d::length(const rigid2d::Vector2D& vec){
+    return sqrt(vec.x*vec.x+ vec.y*vec.y);
+}
+
+double rigid2d::distance(const rigid2d::Vector2D& vec1, const rigid2d::Vector2D& vec2){
+    return sqrt(pow((vec1.x-vec2.x),2)+ pow((vec1.y-vec2.y),2));
+}
+
+double rigid2d::angle(const rigid2d::Vector2D& vec){
+    return atan2(vec.y, vec.x);
+}

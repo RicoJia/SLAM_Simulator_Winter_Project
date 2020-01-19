@@ -106,6 +106,128 @@ TEST(Transform2D_Test_Suite, Transform_mulplication_test){
     EXPECT_NEAR(transform_result.displacement().y, transform_exp.displacement().y, 0.001);
 }
 
+//-------------------------------------------------------------------------------------------------
+/// \brief Gtest for: -= for Vector2D class
+TEST(Vector2D_Test_Suite, self_subtraction_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    rigid2d::Vector2D v2(2.0,1.0);
+    v1-=v2;
+    EXPECT_NEAR(0.0, v1.x, 0.001);
+    EXPECT_NEAR(0.0, v1.y, 0.001);
+}
+
+/// \brief Gtest for: += for Vector2D class
+TEST(Vector2D_Test_Suite, self_addition_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    rigid2d::Vector2D v2(2.0,1.0);
+    v1+=v2;
+    EXPECT_NEAR(4.0, v1.x, 0.001);
+    EXPECT_NEAR(2.0, v1.y, 0.001);
+}
+
+/// \brief Gtest for: *= for Vector2D class when right hand side is a double
+TEST(Vector2D_Test_Suite, self_multiplication_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    double rhs = 2.0;
+    v1*=rhs;
+    EXPECT_NEAR(4.0, v1.x, 0.001);
+    EXPECT_NEAR(2.0, v1.y, 0.001);
+}
+
+/// \brief Gtest for: * for double*Vector2D
+TEST(Vector2D_Test_Suite, multiplication_from_left_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    double lhs = 2.0;
+    auto v2 = lhs*v1;
+    EXPECT_NEAR(4.0, v2.x, 0.001);
+    EXPECT_NEAR(2.0, v2.y, 0.001);
+}
+
+/// \brief Gtest for: * for Vector2D*double
+TEST(Vector2D_Test_Suite, multiplication_from_right_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    double rhs = 2.0;
+    auto v2 = v1*rhs;
+    EXPECT_NEAR(4.0, v2.x, 0.001);
+    EXPECT_NEAR(2.0, v2.y, 0.001);
+}
+
+/// \brief Gtest for: + for Vector2D+ Vector2D
+TEST(Vector2D_Test_Suite, general_addition_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    rigid2d::Vector2D v2(2.0,1.0);
+    auto v3 = v1+v2;
+    EXPECT_NEAR(4.0, v3.x, 0.001);
+    EXPECT_NEAR(2.0, v3.y, 0.001);
+}
+
+/// \brief Gtest for: + for Vector2D-Vector2D
+TEST(Vector2D_Test_Suite, general_subtraction_test){
+    rigid2d::Vector2D v1(2.0,1.0);
+    rigid2d::Vector2D v2(2.0,1.0);
+    auto v3 = v1-v2;
+    EXPECT_NEAR(0.0, v3.x, 0.001);
+    EXPECT_NEAR(0.0, v3.y, 0.001);
+}
+
+/// \brief Gtest for: length of a Vector2D
+TEST(Vector2D_Test_Suite, length_test){
+    rigid2d::Vector2D v1(3.0,4.0);
+    auto l = rigid2d::length(v1);
+    EXPECT_NEAR(5.0, l, 0.001);
+}
+
+/// \brief Gtest for: distance between 2 Vector2D objects
+TEST(Vector2D_Test_Suite, distance_test){
+    rigid2d::Vector2D v1(0.0,1.0);
+    rigid2d::Vector2D v2(0.0,2.0);
+    auto l = rigid2d::distance(v1, v2);
+    EXPECT_NEAR(1.0, l, 0.001);
+}
+
+/// \brief Gtest for: angle between a vector and the positive x axis.
+TEST(Vector2D_Test_Suite, angle_test){
+    rigid2d::Vector2D v1(1.0,1.0);
+    auto l = rigid2d::angle(v1);
+    EXPECT_NEAR(rigid2d::PI/4.0, l, 0.001);
+}
+
+/// \brief Gtest for: angle normalization: any angle -> [-pi, pi] equivalent
+TEST(Vector2D_Test_Suite, angle_normalization_test){
+    double rad1 = 0;
+
+    double rad2= rigid2d::PI*(-5.0/4.0);
+    double rad3 = rigid2d::PI*-6.0/4.0;
+    double rad4 = rigid2d::PI*-7.0/4.0;
+    double rad5 = rigid2d::PI*-8.0/4.0;
+
+    double rad6 = rigid2d::PI*5.0/4.0;
+    double rad7 = rigid2d::PI*6.0/4.0;
+    double rad8 = rigid2d::PI*7.0/4.0;
+    double rad9 = rigid2d::PI*8.0/4.0;
+
+    double rad10 = rigid2d::PI*9.0/4.0;
+    double rad11 = rigid2d::PI*-1;
+    double rad12 = rigid2d::PI;
+
+    EXPECT_NEAR(0.0, rad1, 0.001);
+
+    EXPECT_NEAR(rigid2d::PI*3.0/4.0, rigid2d::normalize_angle(rad2), 0.001);
+    EXPECT_NEAR(rigid2d::PI*2.0/4.0, rigid2d::normalize_angle(rad3), 0.001);
+    EXPECT_NEAR(rigid2d::PI*1.0/4.0, rigid2d::normalize_angle(rad4), 0.001);
+    EXPECT_NEAR(rigid2d::PI*0.0/4.0, rigid2d::normalize_angle(rad5), 0.001);
+
+    EXPECT_NEAR(rigid2d::PI*-3.0/4.0, rigid2d::normalize_angle(rad6), 0.001);
+    EXPECT_NEAR(rigid2d::PI*-2.0/4.0, rigid2d::normalize_angle(rad7), 0.001);
+    EXPECT_NEAR(rigid2d::PI*-1.0/4.0, rigid2d::normalize_angle(rad8), 0.001);
+    EXPECT_NEAR(rigid2d::PI*-0.0/4.0, rigid2d::normalize_angle(rad9), 0.001);
+
+    EXPECT_NEAR(rigid2d::PI*1.0/4.0, rigid2d::normalize_angle(rad10), 0.001);
+    EXPECT_NEAR(rigid2d::PI*-4.0/4.0, rigid2d::normalize_angle(rad11), 0.001);
+    EXPECT_NEAR(rigid2d::PI*4.0/4.0, rigid2d::normalize_angle(rad12), 0.001);
+}
+
+//-------------------------------------------------------------------------------------------------
 /// \brief Gtest for: compute the transformation corresponding to a rigid body following a constant twist for one time unit
 TEST(Individual_Test_Suite, integralTwist_test){
     rigid2d::Twist2D twist_rot(1.0,0.0,0.0);

@@ -119,9 +119,9 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-if (CATKIN_ENABLE_TESTING)
-    catkin_add_gtest(Transform2D_test test/Transform2D_test.test.cpp)
-endif()
+#if (CATKIN_ENABLE_TESTING)
+#    catkin_add_gtest(Transform2D_test test/Transform2D_test.test.cpp)
+#endif()
 ###########
 ## Build ##
 ###########
