@@ -81,7 +81,6 @@ rigid2d::Transform2D rigid2d::operator*(rigid2d::Transform2D lhs, const rigid2d:
     return lhs*=rhs;
 }
 
-
 std::ostream & rigid2d::operator<<(std::ostream & os, const rigid2d::Twist2D & v){
     os<<"["<<v.theta<<endl<<" "<<v.x<<endl<<" "<<v.y<<"]"<<endl;
     return os;
@@ -102,4 +101,10 @@ rigid2d::Twist2D rigid2d::Transform2D::operator()(rigid2d::Twist2D v) const{
     rigid2d::Twist2D ret_v(new_v(2), new_v(0), new_v(1));
     return ret_v;
 
+}
+
+rigid2d::Twist2D rigid2d::Transform2D::displacement() const{
+    double theta = atan2(T(1,0), T(0,0));
+    Twist2D twist(theta, T(0,2), T(1,2));
+    return twist;
 }

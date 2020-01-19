@@ -1,5 +1,5 @@
 # ME495 Sensing, Navigation, and Machine Learning
-Author: Ruotong Rico Jia
+Author: Rico Ruotong Jia
 # Tasks Submitted
 (List the tasks that you worked on and completed here)
 - Task A.000 (nuturtle_description package)

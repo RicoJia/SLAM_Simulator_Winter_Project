@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
+if (CATKIN_ENABLE_TESTING)
+    find_package(rostest REQUIRED)
+endif()
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -213,6 +216,11 @@ install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp DESTINATION include
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
+
+if (CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(${PROJECT_NAME}_Transform2D_test test/Transform2D_test.test.cpp)
+    target_link_libraries(${PROJECT_NAME}_Transform2D_test ${PROJECT_NAME} ${catkin_Libraries} gtest_main)      #don't forget your own library - ${PROJECT_NAME}
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
