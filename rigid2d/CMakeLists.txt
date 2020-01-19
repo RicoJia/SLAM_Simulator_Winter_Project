@@ -20,7 +20,7 @@ if (CATKIN_ENABLE_TESTING)
 #    target_link_libraries(Transform2D_test ${PROJECT_NAME}
 #            ${catkin_LIBRARIES}
 #            Eigen3::Eigen )
-    catkin_add_gtest(Transform2D_test src/test/Transform2D_test.test.cpp)
+
 endif()
 
 ## System dependencies are found with CMake's conventions
@@ -119,6 +119,9 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
+if (CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(Transform2D_test test/Transform2D_test.test.cpp)
+endif()
 ###########
 ## Build ##
 ###########
