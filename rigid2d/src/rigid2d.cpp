@@ -108,3 +108,32 @@ rigid2d::Twist2D rigid2d::Transform2D::displacement() const{
     Twist2D twist(theta, T(0,2), T(1,2));
     return twist;
 }
+
+rigid2d::Transform2D rigid2d::integrateTwist(const rigid2d::Twist2D& twist){
+    auto theta = twist.theta;
+    //Cuando theta == 0, se vuelve una transformacion con la misma distancia y 0 angulo.
+    if (theta==0){
+        rigid2d::Vector2D displacement(twist.x, twist.y);
+        Transform2D transform(displacement);
+        return transform;
+    }
+    else{
+    // Cuando theta!=0, la matriz rotacional debe ser la que con theta.
+        auto vx = twist.x/twist.theta;
+        auto vy = twist.y/twist.theta;
+        Vector2d v(vx,vy);
+        //construir una w matriz para G_theta y la matriz de identitad
+        MatrixXd w_hat(2,2);
+        w_hat<<0.0, -1.0*theta, theta, 0.0;
+        MatrixXd I = MatrixXd::Identity(2, 2);
+
+        auto G_theta = I*theta+w_hat*(1.0-cos(theta)) + (w_hat*w_hat)*(theta-sin(theta));
+        auto v_result = G_theta*v;
+
+        //conseguir la transformacion nueva
+        rigid2d::Vector2D v_result_new(v_result(0), v_result(1));
+        Transform2D transform( v_result_new, theta);
+        return transform;
+    }
+}
+

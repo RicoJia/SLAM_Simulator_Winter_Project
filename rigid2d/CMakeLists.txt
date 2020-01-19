@@ -10,19 +10,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
+        roscpp
 )
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 if (CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
+#    add_rostest_gtest(Transform2D_test src/test/Transform2D_test.test.cpp)
+#    target_link_libraries(Transform2D_test ${PROJECT_NAME}
+#            ${catkin_LIBRARIES}
+#            Eigen3::Eigen )
+    catkin_add_gtest(Transform2D_test src/test/Transform2D_test.test.cpp)
 endif()
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
+## modules and global scripts declared therein get installed  <test_depend>rosunit</test_depend>
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
 
@@ -182,7 +188,7 @@ install(TARGETS ${PROJECT_NAME}_node
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS ${PROJECT_NAME} DESTINATION lib
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
  )
 
 # install(TARGETS ${PROJECT_NAME}
@@ -199,7 +205,7 @@ install(TARGETS ${PROJECT_NAME} DESTINATION lib
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp DESTINATION include
+install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         )
 # install(FILES
 #   # myfile1

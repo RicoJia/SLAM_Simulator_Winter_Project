@@ -106,6 +106,20 @@ TEST(Transform2D_Test_Suite, Transform_mulplication_test){
     EXPECT_NEAR(transform_result.displacement().y, transform_exp.displacement().y, 0.001);
 }
 
+/// \brief Gtest for: compute the transformation corresponding to a rigid body following a constant twist for one time unit
+TEST(Individual_Test_Suite, integralTwist_test){
+    rigid2d::Twist2D twist_rot(1.0,0.0,0.0);
+    rigid2d::Twist2D twist_trans(0.0,1.0,1.0);
+    auto transform_rot = rigid2d::integrateTwist(twist_rot);
+    auto transform_trans = rigid2d::integrateTwist(twist_trans);
+
+    EXPECT_NEAR(transform_rot.displacement().theta, 1.0, 0.001);
+    EXPECT_NEAR(transform_rot.displacement().x, 0.0, 0.001);
+    EXPECT_NEAR(transform_rot.displacement().y, 0.0 , 0.001);
+    EXPECT_NEAR(transform_trans.displacement().theta, 0.0, 0.001);
+    EXPECT_NEAR(transform_trans.displacement().x, 1.0, 0.001);
+    EXPECT_NEAR(transform_trans.displacement().y, 1.0 , 0.001);
+}
 
 int main(int argc, char * argv[]){
     testing::InitGoogleTest(&argc, argv);

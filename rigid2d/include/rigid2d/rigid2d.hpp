@@ -10,6 +10,7 @@
 
 using Eigen::MatrixXd;
 using Eigen::Vector3d;
+using Eigen::Vector2d;
 
 namespace rigid2d
 {
@@ -188,6 +189,10 @@ namespace rigid2d
     /// HINT: This function can be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
+    /// \brief compute the transformation corresponding to a rigid body following a constant twist for one time unit
+    /// \param Twist2D& - ttwist in unit time [theta, x, y], which is screw x theta. screw is [1, vx, vy].
+    /// \return Transform2D SE2
+    Transform2D integrateTwist(const Twist2D&);
 
 }
 
