@@ -11,11 +11,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
         roscpp
+        tf
+        nav_msgs
+        geometry_msgs
 )
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 if (CATKIN_ENABLE_TESTING)
-    find_package(rostest REQUIRED)
+#    find_package(rostest REQUIRED)
 #    add_rostest_gtest(Transform2D_test src/test/Transform2D_test.test.cpp)
 #    target_link_libraries(Transform2D_test ${PROJECT_NAME}
 #            ${catkin_LIBRARIES}
@@ -115,8 +118,8 @@ endif()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES rigid2d
-#  CATKIN_DEPENDS roscpp
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp tf nav_msgs geometry_msgs
+#        DEPENDS system_lib
 )
 
 #if (CATKIN_ENABLE_TESTING)
@@ -131,12 +134,13 @@ catkin_package(
 include_directories(
    include    #This is crucial as it tells catkin to search for .h file in your include!!
   ${catkin_INCLUDE_DIRS}     #[QUESTION]: Not sure what this is??
-
 )
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    src/${PROJECT_NAME}.cpp
+        src/diff_drive.cpp
+        src/waypoints.cpp
  )
 target_link_libraries(${PROJECT_NAME}
         ${catkin_LIBRARIES}
@@ -151,7 +155,7 @@ target_link_libraries(${PROJECT_NAME}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
-
+add_executable(${PROJECT_NAME}_Odometer_node src/odometer.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -168,6 +172,10 @@ target_link_libraries(${PROJECT_NAME}_node
         ${PROJECT_NAME}
 )
 
+target_link_libraries(${PROJECT_NAME}_Odometer_node
+        ${catkin_LIBRARIES}
+        ${PROJECT_NAME}
+)
 #############
 ## Install ##
 #############
@@ -188,6 +196,9 @@ install(TARGETS ${PROJECT_NAME}_node
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+install(TARGETS ${PROJECT_NAME}_Odometer_node
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
@@ -208,7 +219,11 @@ install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp
+        include/${PROJECT_NAME}/diff_drive.hpp
+        include/${PROJECT_NAME}/waypoints.hpp
+        include/${PROJECT_NAME}/odometer.hpp
+        DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         )
 # install(FILES
 #   # myfile1
@@ -227,8 +242,14 @@ install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp DESTINATION ${CATKIN_P
 # endif()
 
 if (CATKIN_ENABLE_TESTING)
-    catkin_add_gtest(${PROJECT_NAME}_Transform2D_test test/Transform2D_test.test.cpp)
+    catkin_add_gtest(${PROJECT_NAME}_Transform2D_test test/Transform2D_test.cpp)
     target_link_libraries(${PROJECT_NAME}_Transform2D_test ${PROJECT_NAME} ${catkin_Libraries} gtest_main)      #don't forget your own library - ${PROJECT_NAME}
+
+    catkin_add_gtest(${PROJECT_NAME}_DiffDrive_test test/DiffDrive_test.cpp)
+    target_link_libraries(${PROJECT_NAME}_DiffDrive_test ${PROJECT_NAME} ${catkin_Libraries} gtest_main)      #don't forget your own library - ${PROJECT_NAME}
+
+    catkin_add_gtest(${PROJECT_NAME}_Waypoints_test test/Waypoints_test.cpp)
+    target_link_libraries(${PROJECT_NAME}_Waypoints_test ${PROJECT_NAME} ${catkin_Libraries} gtest_main)      #don't forget your own library - ${PROJECT_NAME}
 endif()
 
 ## Add folders to be run by python nosetests

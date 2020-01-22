@@ -4,8 +4,10 @@
 #chassis_length: The length of the main chassis link
 #chassis_thickness: The thickness of the plate that forms the chassis
 
-wheel_width: 0.2
 wheel_radius: 0.2
 wheel_base: 1.2
-chassis_length: 2.0
-chassis_thickness: 0.5
+frequency: 100
+odom_frame_id: 'odom'
+body_frame_id: 'base_link'
+left_wheel_joint: 'left_wheel_joint'
+right_wheel_joint: 'right_wheel_joint'

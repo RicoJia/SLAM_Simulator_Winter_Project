@@ -132,7 +132,7 @@ namespace rigid2d
     double distance(const Vector2D& vec1, const Vector2D& vec2);
 ////    angle(Vector2D) (compute the angle of the vector)
 
-    /// \brief Get the angle between a Vector2D and positive X axis
+    /// \brief Get the angle between a Vector2D and positive X axis, between -PI and PI.
     /// \param one Vector2D object
     /// \returns angle value
     double angle(const Vector2D& vec1);
@@ -258,7 +258,6 @@ namespace rigid2d
     Transform2D integrateTwist(const Twist2D&);
 
     class DiffDrive;
-
 }
 
 #endif

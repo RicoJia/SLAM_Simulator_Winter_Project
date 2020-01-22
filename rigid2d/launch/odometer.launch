@@ -1,0 +1,12 @@
+<launch>
+
+<node name = "Odometer" pkg = "rigid2d"  type = "rigid2d_Odometer_node" output="screen" >
+  <rosparam file="$(find rigid2d)/config/params.yaml" />
+  <remap from="body_frame_id" to="~body_frame_id"/>
+  <remap from="right_wheel_joint" to="~right_wheel_joint"/>
+  <remap from="left_wheel_joint" to="~left_wheel_joint"/>
+  <remap from="odom_frame_id" to="~odom_frame_id"/>
+
+</node>
+
+</launch>
