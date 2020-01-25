@@ -14,7 +14,9 @@ differential drive robot.
 
 ### System setup
 
-python 2.7 (python 3 above will have trouble launching rqt_plot)
+- ROS Melodic 
+- Linux Ubuntu 18.04
+- python 2.7 (python 3 above will have trouble launching rqt_plot)
 
 ### Usage
 - If you have a differential drive robot and your control package publishes a turtlesim/Twist message, you can use fake_diff_encoders and odometer to visualize your result on rviz  
