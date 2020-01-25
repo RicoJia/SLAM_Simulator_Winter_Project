@@ -3,7 +3,7 @@
 //
 
 //#include "rigid2d/waypoints.hpp"
-#include "../include/rigid2d/waypoints.hpp"
+#include "rigid2d/waypoints.hpp"
 #include <math.h>
 
 using namespace rigid2d;
@@ -46,10 +46,15 @@ Twist2D Waypoints::nextWaypoint(){
             update_target();
         }
     }
-    update_current_position(cmd_vel);
+
+    Twist2D cmd_increment(cmd_vel.theta/frequency, cmd_vel.x/frequency, cmd_vel.y/frequency);
+    update_current_position(cmd_increment);
     return cmd_vel;
 }
 
+Twist2D Waypoints::get_pose(){
+    return dd.get_pose();
+}
 
 void Waypoints::reset_waypoints(const double& init_heading, const std::vector<Vector2D>& wps){
     dd = DiffDrive(init_heading, wps[0].x, wps[0].y, 0.0, 0.0);

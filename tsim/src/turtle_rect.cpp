@@ -160,7 +160,7 @@ int main(int argc, char**argv)
     x_dead_reckoning = x;
     y_dead_reckoning = y;
 
-    while (ros::ok){
+    while (ros::ok()){
 
         if (reset_now == true){
             teleport_2_bottom(nh, x, y);

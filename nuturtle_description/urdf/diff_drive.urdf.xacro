@@ -16,7 +16,7 @@
 
     <xacro:property name="pink_mat">
      <material name="arm_pink_mat">
-       <color rgba="1 0.078 0.363 1.0" />
+       <color rgba="1.0 0.42 0.72 1.0" />
      </material>
     </xacro:property>
 
@@ -58,7 +58,7 @@
      <geometry>
          <box size="${diff_params['chassis_length']} ${diff_params['wheel_base']-diff_params['wheel_width']} ${diff_params['chassis_thickness']}"/>
       </geometry>
-        <xacro:insert_block name="yellow_mat"/>
+        <xacro:insert_block name="pink_mat"/>
     </visual>
     </link>
 

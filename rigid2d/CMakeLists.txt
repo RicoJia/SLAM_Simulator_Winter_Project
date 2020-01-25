@@ -17,14 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
-if (CATKIN_ENABLE_TESTING)
-#    find_package(rostest REQUIRED)
-#    add_rostest_gtest(Transform2D_test src/test/Transform2D_test.test.cpp)
-#    target_link_libraries(Transform2D_test ${PROJECT_NAME}
-#            ${catkin_LIBRARIES}
-#            Eigen3::Eigen )
-
-endif()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -117,7 +109,7 @@ endif()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES rigid2d
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS roscpp tf nav_msgs geometry_msgs
 #        DEPENDS system_lib
 )
@@ -218,12 +210,6 @@ install(TARGETS ${PROJECT_NAME}_Fake_Diff_Encoders_node
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
  )
-
-# install(TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-# )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/

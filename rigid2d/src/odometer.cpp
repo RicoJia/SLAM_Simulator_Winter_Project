@@ -25,6 +25,7 @@ Odometer::Odometer(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive()
 
     auto init_pose = Twist2D();  //default pose
     diff_drive = DiffDrive(init_pose, wheel_base, wheel_radius);
+
 }
 
 void Odometer::sub_callback(const sensor_msgs::JointState& msg){

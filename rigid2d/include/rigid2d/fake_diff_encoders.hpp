@@ -15,10 +15,17 @@
 
 using std::string;
 
+/// \file
 /// \brief The node subscribes to geometry_msgs/Twist messages on cmd_vel. Assume that, once a cmd_vel is received, the robot follows that velocity until the next cmd_vel command
-/// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
-//    nav_msgs::Odometry construct_odom_msg(const rigid2d::Twist2D&, const rigid2d::Twist2D&);
-//    geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
+/// PARAMETERS:
+///     sensor_msgs::geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
+///     frequency : frequency for updating cmd_vel. This is needed for determining how far the robot goes at a rate of cmd_vel.
+/// SUBSCRIBES:
+///     sensor_msgs::JointState&  joint state messages for left and right wheel velocities
+/// PUBLISHES:
+///     sensor_msgs::nav_msgs::Odometry construct_odom_msg(const rigid2d::Twist2D&, const rigid2d::Twist2D&);
+/// BROADCAST:
+///     /tf transformation between /odom frame and /base_link fram
 
 
 class FakeDiffEncoders{

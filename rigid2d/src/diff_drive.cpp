@@ -3,7 +3,7 @@
 //
 
 //#include "rigid2d/diff_drive.hpp"
-#include "../include/rigid2d/diff_drive.hpp"
+#include "rigid2d/diff_drive.hpp"
 using Eigen::Matrix2d;
 using Eigen::MatrixXd;
 using Eigen::Vector2d;
@@ -28,7 +28,6 @@ rigid2d::WheelVel rigid2d::DiffDrive::twistToWheels(const Twist2D& body_twist){
         }
     }
     catch (std::exception &e){ std::cerr<<"Error! "<<e.what()<<std::endl; }
-    //Test
     return wheelVel;
 }
 
@@ -48,7 +47,6 @@ rigid2d::Twist2D rigid2d::DiffDrive::wheelsToTwist(const rigid2d::WheelVel& whee
 }
 
 rigid2d::WheelVel rigid2d::DiffDrive::updateOdometry(const double& l_encoding, const double& r_encoding){
-    // get difference, angle wrapped
     auto l_vel = normalize_angle( normalize_angle( l_encoding ) - wheel_positions.theta_l);
     auto r_vel = normalize_angle( normalize_angle( r_encoding ) - wheel_positions.theta_r);
     //if the |difference|>PI, according to our speed limit, we choose the increment that is less than PI.
@@ -58,7 +56,6 @@ rigid2d::WheelVel rigid2d::DiffDrive::updateOdometry(const double& l_encoding, c
     if (abs(r_vel)> PI)
         l_vel = -1.0*r_vel/abs(r_vel) * (PI - abs(r_vel));
 
-    // store
     wheel_velocities.u_l = l_vel;
     wheel_velocities.u_r = r_vel;
     wheel_positions.theta_l = normalize_angle(l_encoding);

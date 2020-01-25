@@ -11,7 +11,7 @@
   <!-- The joint state publisher will be launched with a gui, read the urdf from /robot_description
        and publish the joint values on /joint_states -->
   <arg name="use_jsp_gui" default = "true" doc="Launch the joint_state_publisher gui to publish joint angles"/>
-  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" if="$(arg use_jsp_gui)">
     <param name="use_gui" value="$(arg use_jsp_gui)" />
   </node  >
 

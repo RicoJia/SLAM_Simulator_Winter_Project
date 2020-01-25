@@ -6,6 +6,14 @@
 #define INC_495_NAV_ALL_PROJECTS_TURTLE_WAY_H
 
 #include "rigid2d/waypoints.hpp"
+#include <ros/ros.h>
+#include <vector>
+#include <turtlesim/Pose.h>
+#include <tsim/PoseError.h>
+#include <geometry_msgs/Twist.h>
+#include "turtlesim/SetPen.h"
+#include "turtlesim/TeleportAbsolute.h"
+
 
 /// \file
 /// \brief A node that has the turtle follow a trajectory of user-specified waypoints.
@@ -18,20 +26,37 @@
 /// SUBSCRIBES:
 ///     turtle/pose (turtlesim/Pose): the actual pose of the turtle for computing the error from odometry.
 
-The waypoint y coordinates are specified in the waypoint_y parameter
-The node should also subscribe to  and compute the error between its actual and expected trajectory
-        For this task, the trajectory must be computed without knowledge of the pose.
-The error should be published on /pose_error
-        As in turtle_rect, the turtle should pick its pen up, teleport to the first waypoint, and put its pen down and
-        The robot can publish velocity commands at a fixed rate of 60Hz
-
 class TurtleWay {
 public:
     TurtleWay();
+    TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2);
+    void publish_velocity_commands();
+
+    double frequency;
 private:
     std::vector<rigid2d::Vector2D> wp_vec;
-    unsigned int frequency;
+    double wheel_base;
+    double wheel_radius;
+    rigid2d::Twist2D max_vel;
     rigid2d::Waypoints wp;
+
+    ros::Subscriber pose_sub;
+    ros::Publisher error_pub;
+    ros::Publisher vel_pub;
+
+    /// \brief  Upon receiving a new pose message from turtlesim, the function will publish error between the actual pose on turtlesim and pose that the robot keeps.
+    /// \paramp pose(turtlesim::Pose) pose message from turtlesim
+    void sub_callback(const turtlesim::Pose&);
+
+    /// \brief turn pen on and off on turtlesim
+    /// \param nh (ros::NodeHandle) public node handle of the robot
+    /// \param status(bool): true for turning pen off
+    void turn_off_pen( ros::NodeHandle& nh, bool);
+
+    /// \brief Teleport turtle to the first element of the waypoints vector.
+    /// \param nh (ros::Nodehandle) Public nodehandle
+    /// \param init_heading(double) initial heading of the robot
+    void teleport_2_bottom(ros::NodeHandle& , double);
 };
 
 

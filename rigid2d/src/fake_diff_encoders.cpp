@@ -2,7 +2,7 @@
 // Created by ricojia on 1/23/20.
 //
 
-#include "../include/rigid2d/fake_diff_encoders.hpp"
+#include "rigid2d/fake_diff_encoders.hpp"
 
 using namespace rigid2d;
 
@@ -20,7 +20,7 @@ FakeDiffEncoders::FakeDiffEncoders(ros::NodeHandle& nh, ros::NodeHandle& nh2):dd
 }
 
 void FakeDiffEncoders::sub_callback(const geometry_msgs::Twist& cmd_vel_msg){
-    Twist2D body_twist(cmd_vel_msg.angular.z, cmd_vel_msg.linear.x, cmd_vel_msg.linear.y);
+    Twist2D body_twist(cmd_vel_msg.angular.z/frequency, cmd_vel_msg.linear.x/frequency, cmd_vel_msg.linear.y/frequency);
     auto wheel_vel = dd.twistToWheels(body_twist);
     auto wheel_pos = dd.update_wheel_pos(wheel_vel);
     auto joint_state_msg = construct_joint_state_msg(wheel_pos, wheel_vel);

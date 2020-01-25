@@ -5,10 +5,11 @@
 #ifndef INC_495_NAV_ALL_PROJECTS_DIFF_DRIVE_H
 #define INC_495_NAV_ALL_PROJECTS_DIFF_DRIVE_H
 
-#include "../include/rigid2d/rigid2d.hpp"
+#include "rigid2d/rigid2d.hpp"
+
+/// \file
 /// \brief A DiffDrive Simulator. This file is part of the rigid2d namespace - definition of DiffDrive.
 /// the robot will turn toward the next waypoint until heading is within a threshold, travel to waypoint until you reach it, then target the next waypoint
-
 
 namespace rigid2d {
 
@@ -59,12 +60,11 @@ namespace rigid2d {
         ///        move with the desired linear and angular velocities
         /// \param twist - the desired twist in the body frame of the robot
         /// \returns - the wheel velocities to use
-        /// \throws std::exception
+        /// \throws std::exception when body twist in y direction is non zero
         WheelVel twistToWheels(const Twist2D&);
 //
         /// \brief determine the body twist of the robot from its wheel velocities
-        /// \param vel - the velocities of the wheels, assumed to be held constant
-        ///  for one time unit
+        /// \param vel - the velocities of the wheels, assumed to be held constant for one time unit
         /// \returns twist in the original body frame of the
         Twist2D wheelsToTwist(const WheelVel&);
 //
@@ -78,8 +78,7 @@ namespace rigid2d {
         /// constant since the last call to updateOdometry  (NOT considering delta_t)
         WheelVel updateOdometry(const double&, const double&);
 //
-        /// \brief update the odometry of the diff drive robot, assuming that
-        /// it follows the given body twist for one time  unit , including: pose. This function should be used on the robot control
+        /// \brief update the odometry of the diff drive robot, assuming that it follows the given body twist for one time  unit , including: pose. This function should be used on the robot control
         /// \param cmd - the body twist command to send to the robot
         void feedforward(const Twist2D&);
 
@@ -92,6 +91,7 @@ namespace rigid2d {
         WheelPos update_wheel_pos(const WheelVel&);
 
         /// \brief get the wheel speeds, based on the last encoder update
+        /// \return wheel velocities
         WheelVel wheelVelocities() const;
 //
         /// \brief reset the robot to the given position/orientation
