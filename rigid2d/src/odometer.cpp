@@ -5,7 +5,10 @@
 #include "../include/rigid2d/odometer.hpp"
 
 using namespace rigid2d;
-Odometer::Odometer(ros::NodeHandle nh, ros::NodeHandle nh2)
+
+Odometer::Odometer(){}
+
+Odometer::Odometer(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive()
 {
     nh.getParam("/Odometer/wheel_base", wheel_base);
     nh.getParam("/Odometer/wheel_radius", wheel_radius);
@@ -31,12 +34,13 @@ void Odometer::sub_callback(const sensor_msgs::JointState& msg){
     auto right_iterator = std::find(msg.name.begin(),msg.name.end(), right_wheel_joint);
     int right_index = std::distance(msg.name.begin(), right_iterator);
 
-    auto wheel_increment = diff_drive.updateOdometry(msg.position[left_index], msg.position[right_index]);
-    auto twist_increment = diff_drive.wheelsToTwist(wheel_increment);
-    diff_drive.feedforward(twist_increment);
+    diff_drive.updateOdometry(msg.position[left_index], msg.position[right_index]);
+//    auto twist_increment = diff_drive.wheelsToTwist(wheel_increment);
     auto pose_twist = diff_drive.get_pose();
+    auto velocity_twist = diff_drive.wheelsToTwist(WheelVel(msg.velocity[left_index], msg.velocity[right_index]));       //getting from wheel velocity, TODO: NEED DELTA T?
 
-    auto velocity_twist = diff_drive.wheelsToTwist(WheelVel(msg.velocity[left_index], msg.velocity[right_index]));       //getting from wheel velocity, TODO: need double check
+    //TEST
+    std::cout<<"pose_twist: "<<pose_twist<<std::endl;
 
     //construct odom msg and publish here
     nav_msgs::Odometry odom_msg = construct_odom_msg(pose_twist, velocity_twist);
@@ -84,11 +88,12 @@ geometry_msgs::TransformStamped Odometer::construct_tf(const rigid2d::Twist2D& p
     return odom_trans;
 }
 
+
 int main(int argc, char** argv){
     ros::init(argc, argv, "Odometer");
     ros::NodeHandle nh;
     ros::NodeHandle nh2("~");
-    Odometer odometer();
+    Odometer odometer(nh,nh2);
     ros::spin();
 
     return 0;

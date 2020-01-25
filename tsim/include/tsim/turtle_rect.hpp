@@ -7,7 +7,7 @@
 
 #include "ros/ros.h"
 #include <sstream>
-#include "turtle_rect.h"
+#include "turtle_rect.hpp"
 #include "turtlesim/SetPen.h"
 #include "turtlesim/TeleportAbsolute.h"
 #include "geometry_msgs/Twist.h"

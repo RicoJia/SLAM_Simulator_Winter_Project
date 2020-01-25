@@ -14,3 +14,5 @@ height: 5
 trans_vel: 2
 rot_vel: 1
 frequency: 100
+waypoint_x: [0.0, 1.0, 2.0, 0.5, -1.0]
+waypoint_y: [0.0, 0.0, 1.0, 2.0, 1.0]

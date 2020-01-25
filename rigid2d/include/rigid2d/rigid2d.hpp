@@ -57,6 +57,8 @@ namespace rigid2d
         auto _rad = rad - ((int)(rad/(2*PI)))*(2*PI);       //pow, mod functions are not available during compile time
         if (abs(_rad) > PI)
             _rad = (_rad>0)?-1.0*(2.0*PI-_rad):2.0*PI+_rad;
+        if (_rad == -1*PI)
+            _rad = PI;
         return _rad;
     }
 
@@ -137,7 +139,6 @@ namespace rigid2d
     /// \returns angle value
     double angle(const Vector2D& vec1);
 
-
 //--------------------------------------------------------------------------------------------------------------
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// os - stream to output to
@@ -202,7 +203,7 @@ namespace rigid2d
         /// component
         /// \param trans - the translation
         /// \param rot - the rotation, in radians
-        Transform2D(const Vector2D & trans, double radians);
+        explicit Transform2D(const Vector2D & trans, double radians);
 //
         /// \brief apply a transformation to a Vector2D
         /// \param v - the vector to transform
@@ -226,7 +227,7 @@ namespace rigid2d
 
         /// \brief return theta, x, y in a Twist2D object
         /// \returns a Twist2D object
-        Twist2D displacement() const;
+        Twist2D displacement() const;       //TODO: check math
 
     private:
         MatrixXd T;

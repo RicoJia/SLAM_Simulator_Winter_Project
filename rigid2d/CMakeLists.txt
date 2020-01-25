@@ -116,7 +116,7 @@ endif()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES rigid2d
   CATKIN_DEPENDS roscpp tf nav_msgs geometry_msgs
 #        DEPENDS system_lib
@@ -136,16 +136,20 @@ include_directories(
   ${catkin_INCLUDE_DIRS}     #[QUESTION]: Not sure what this is??
 )
 
+
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
    src/${PROJECT_NAME}.cpp
         src/diff_drive.cpp
         src/waypoints.cpp
+        src/fake_diff_encoders.cpp
  )
+
 target_link_libraries(${PROJECT_NAME}
         ${catkin_LIBRARIES}
         Eigen3::Eigen
         )
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -156,6 +160,8 @@ target_link_libraries(${PROJECT_NAME}
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
 add_executable(${PROJECT_NAME}_Odometer_node src/odometer.cpp)
+add_executable(${PROJECT_NAME}_Fake_Diff_Encoders_node src/fake_diff_encoders.cpp)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -173,6 +179,11 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 target_link_libraries(${PROJECT_NAME}_Odometer_node
+        ${catkin_LIBRARIES}
+        ${PROJECT_NAME}
+)
+
+target_link_libraries(${PROJECT_NAME}_Fake_Diff_Encoders_node
         ${catkin_LIBRARIES}
         ${PROJECT_NAME}
 )
@@ -200,6 +211,9 @@ install(TARGETS ${PROJECT_NAME}_Odometer_node
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 
+install(TARGETS ${PROJECT_NAME}_Fake_Diff_Encoders_node
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        )
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
@@ -215,11 +229,12 @@ install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 # install(DIRECTORY include/${PROJECT_NAME}/
 #   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 #   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
+#   PATTERN ".svn" EX\CLUDE
 # )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp
+        include/${PROJECT_NAME}/fake_diff_encoders.hpp
         include/${PROJECT_NAME}/diff_drive.hpp
         include/${PROJECT_NAME}/waypoints.hpp
         include/${PROJECT_NAME}/odometer.hpp
@@ -230,6 +245,12 @@ install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        FILES_MATCHING PATTERN "*.h"
+        PATTERN ".svn" EXCLUDE)
+
 
 #############
 ## Testing ##
@@ -242,6 +263,9 @@ install(FILES include/${PROJECT_NAME}/${PROJECT_NAME}.hpp
 # endif()
 
 if (CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(${PROJECT_NAME}_FakeDiffEncoders_test test/FakeDiffEncoders_test.cpp)
+    target_link_libraries(${PROJECT_NAME}_FakeDiffEncoders_test ${PROJECT_NAME} ${catkin_Libraries} gtest_main)      #don't forget your own library - ${PROJECT_NAME}
+
     catkin_add_gtest(${PROJECT_NAME}_Transform2D_test test/Transform2D_test.cpp)
     target_link_libraries(${PROJECT_NAME}_Transform2D_test ${PROJECT_NAME} ${catkin_Libraries} gtest_main)      #don't forget your own library - ${PROJECT_NAME}
 

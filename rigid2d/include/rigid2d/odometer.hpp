@@ -10,6 +10,7 @@
 /// Things to do:
 
 /// PARAMETERS:
+///    dd: DiffDrive object
 ///    wheel_base - distance between the two wheels
 ///    wheel_radius - radius of each wheel
 ///    frequency - The frequency of the control loop
@@ -35,7 +36,11 @@ using std::string;
 
 class Odometer{
 public:
-    explicit Odometer(ros::NodeHandle nh, ros::NodeHandle nh2);
+    /// \brief Default constructor
+    Odometer();
+
+    /// \brief constructor
+    explicit Odometer(ros::NodeHandle& nh, ros::NodeHandle& nh2);
 
 private:
     double wheel_base, wheel_radius;
@@ -51,9 +56,15 @@ private:
     string right_wheel_joint;
     rigid2d::DiffDrive diff_drive;
 
+    /// \brief Callback function for receiving joint_state msg.
+    /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
     void sub_callback(const sensor_msgs::JointState& msg);
+
+    /// \brief constructing a odom message,  based on pose and body twist
+    /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
     nav_msgs::Odometry construct_odom_msg(const rigid2d::Twist2D&, const rigid2d::Twist2D&);
     geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
+
 };
 
 

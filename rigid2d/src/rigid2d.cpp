@@ -125,7 +125,8 @@ rigid2d::Transform2D rigid2d::integrateTwist(const rigid2d::Twist2D& twist){
         Vector2d v(vx,vy);
         //construir una w matriz para G_theta y la matriz de identitad
         MatrixXd w_hat(2,2);
-        w_hat<<0.0, -1.0*theta, theta, 0.0;
+//        w_hat<<0.0, -1.0*theta, theta, 0.0;
+        w_hat<<0.0, -1.0, 1.0, 0.0;
         MatrixXd I = MatrixXd::Identity(2, 2);
 
         auto G_theta = I*theta+w_hat*(1.0-cos(theta)) + (w_hat*w_hat)*(theta-sin(theta));
@@ -134,6 +135,7 @@ rigid2d::Transform2D rigid2d::integrateTwist(const rigid2d::Twist2D& twist){
         //conseguir la transformacion nueva
         rigid2d::Vector2D v_result_new(v_result(0), v_result(1));
         Transform2D transform( v_result_new, theta);
+
         return transform;
     }
 }

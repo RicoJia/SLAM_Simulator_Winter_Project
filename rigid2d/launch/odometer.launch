@@ -9,4 +9,29 @@
 
 </node>
 
+<node name = "Fake_Diff_Encoders" pkg = "rigid2d"  type = "rigid2d_Fake_Diff_Encoders_node" output="screen" >
+  <rosparam file="$(find rigid2d)/config/params.yaml" />
+  <remap from="body_frame_id" to="~body_frame_id"/>
+  <remap from="right_wheel_joint" to="~right_wheel_joint"/>
+  <remap from="left_wheel_joint" to="~left_wheel_joint"/>
+  <remap from="odom_frame_id" to="~odom_frame_id"/>
+
+</node>
+
+  <!-- load the nuturtle urdf into the parameter server -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find nuturtle_description)/urdf/diff_drive.urdf.xacro'"/>
+
+  <!-- The robot_state_publisher reads the urdf from /robot_description parameter
+       and listens to joint information on the /joint_states topic -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+<!--  <group if="$(arg rviz_launch)" >-->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nuturtle_description)/config/view_robot.rviz" required="true"/>
+
+<!--   <arg name="use_jsp_gui" default = "true" doc="Launch the joint_state_publisher gui to publish joint angles"/> -->
+<!--   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"> -->
+<!--     <param name="use_gui" value="$(arg use_jsp_gui)" /> -->
+<!--   </node  > -->
+
+
 </launch>

@@ -9,15 +9,15 @@
 using namespace rigid2d;
 
 double Waypoints::get_theta_error(){
-    double theta = current_position.theta;
-    auto target_vec = waypoints_vec[0] - Vector2D(current_position.x, current_position.y);
+    double theta = dd.get_pose().theta;
+    auto target_vec = waypoints_vec[0] - Vector2D(dd.get_pose().x, dd.get_pose().y);
     double theta_required = angle(target_vec);
     double theta_err = normalize_angle(theta_required - theta);
     return theta_err;
 }
 
 double Waypoints::get_distance_error() {
-    Vector2D current_coord(current_position.x, current_position.y);
+    Vector2D current_coord(dd.get_pose().x, dd.get_pose().y);
     double distance_error = length(current_coord-waypoints_vec[0]);
     return distance_error;
 }
@@ -28,12 +28,10 @@ void Waypoints::update_target(){
 }
 
 void Waypoints::update_current_position(const Twist2D& velocities){
-    current_position.x += velocities.x*cos(current_position.theta);
-    current_position.y += velocities.y*sin(current_position.theta);
-    current_position.theta = normalize_angle(current_position.theta + velocities.theta);
+    dd.feedforward(velocities);
 }
 
-Twist2D Waypoints::nextWaypoint(const Twist2D& current_pose){
+Twist2D Waypoints::nextWaypoint(){
     double theta_err = get_theta_error();
     Twist2D cmd_vel;
     if (abs(theta_err) > WAYPOINTS_THETA_THRESHOLD){
@@ -53,10 +51,8 @@ Twist2D Waypoints::nextWaypoint(const Twist2D& current_pose){
 }
 
 
-
-bool Waypoints::reset_waypoints(const double& init_heading, const std::vector<Vector2D>& wps){
-    current_position = Twist2D(init_heading, wps[0].x, wps[0].y);
+void Waypoints::reset_waypoints(const double& init_heading, const std::vector<Vector2D>& wps){
+    dd = DiffDrive(init_heading, wps[0].x, wps[0].y, 0.0, 0.0);
     waypoints_vec = wps;
     update_target();
-    return true;
 }

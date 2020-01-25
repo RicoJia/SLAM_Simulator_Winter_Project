@@ -7,7 +7,10 @@
 wheel_radius: 0.2
 wheel_base: 1.2
 frequency: 100
+#wheel_radius: 1.0
+#wheel_base: 1.0
+#frequency: 1
 odom_frame_id: 'odom'
 body_frame_id: 'base_link'
-left_wheel_joint: 'left_wheel_joint'
-right_wheel_joint: 'right_wheel_joint'
+left_wheel_joint: 'left_wheel_axle'
+right_wheel_joint: 'right_wheel_axle'

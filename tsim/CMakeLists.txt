@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
         roscpp
         std_srvs)
 
+find_package(rigid2d REQUIRED)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -101,7 +103,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
 #  LIBRARIES tsim
 CATKIN_DEPENDS
 #  DEPENDS system_lib
@@ -118,8 +120,9 @@ CATKIN_DEPENDS
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+        ${rigid2d_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -136,6 +139,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(turtle_rect src/turtle_rect.cpp)
+add_executable(turtle_way src/turtle_way.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -145,7 +149,7 @@ add_executable(turtle_rect src/turtle_rect.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(turtle_way ${rigid2d_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 #Qustion??
@@ -153,6 +157,12 @@ target_link_libraries(
          turtle_rect
    ${catkin_LIBRARIES}
  )
+
+target_link_libraries(
+        turtle_way
+        ${catkin_LIBRARIES}
+         rigid2d
+)
 
 #############
 ## Install ##
@@ -165,29 +175,41 @@ target_link_libraries(
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
    src/turtle_rect.cpp
+        src/turtle_way.cpp
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
+
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS turtle_rect
+install(TARGETS turtle_rect turtle_way
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
+## Mark other files for installation (e.g. launch and bag files, etc.)
+install(FILES
+        include/${PROJECT_NAME}/turtle_rect.hpp
+        include/${PROJECT_NAME}/turtle_way.hpp
+        DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        )
+
+## Install project namespaced headers
+
+
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-# install(TARGETS ${PROJECT_NAME}
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
-# )
+install(TARGETS turtle_rect turtle_way
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 #   FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
-# )
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

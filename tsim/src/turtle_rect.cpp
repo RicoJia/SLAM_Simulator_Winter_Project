@@ -18,7 +18,7 @@
 ///     traj_reset (tsim/traj_set): Reset the turtle's position to the lower left corner of the rectangle.
 ///     However, this service does not restart the trajectory, i.e, the turtle's will finish the rest of the old trajectory
 
-#include "turtle_rect.h"
+#include "tsim/turtle_rect.hpp"
 
 bool reset_now = false;
 double x_dead_reckoning = 0;

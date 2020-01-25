@@ -26,7 +26,7 @@ namespace rigid2d {
     {
     public:
         /// \brief the default constructor creates a robot at (0,0,0), with a fixed wheel base and wheel radius
-        DiffDrive():pose(),
+        DiffDrive():pose_transform(),
                     wheel_velocities(0.0, 0.0),
                     wheel_positions(0.0, 0.0),
                     wheel_base(0),
@@ -37,8 +37,8 @@ namespace rigid2d {
         /// \param pose - the current position of the robot
         /// \param wheel_base - the distance between the wheel centers
         /// \param wheel_radius - the raidus of the wheels
-        explicit DiffDrive(Twist2D pose, double wheel_base, double wheel_radius):pose(pose),
-                                                    wheel_velocities(0.0, 0.0),
+        explicit DiffDrive(Twist2D pose, double wheel_base, double wheel_radius):
+                                                    pose_transform(Vector2D(pose.x, pose.y), pose.theta),
                                                     wheel_positions(0.0, 0.0),
                                                     wheel_base(wheel_base),
                                                     wheel_radius(wheel_radius)
@@ -48,7 +48,8 @@ namespace rigid2d {
         /// \param pose - the current position of the robot
         /// \param wheel_base - the distance between the wheel centers
         /// \param wheel_radius - the raidus of the wheels                                                                {}
-        explicit DiffDrive(double theta, double x, double y, double l, double r):pose(theta, x, y),
+        explicit DiffDrive(double theta, double x, double y, double l, double r):
+                                                                        pose_transform(Vector2D(x, y), theta),
                                                                         wheel_velocities(0.0, 0.0),
                                                                         wheel_positions(0.0, 0.0),
                                                                         wheel_base(l),
@@ -67,21 +68,29 @@ namespace rigid2d {
         /// \returns twist in the original body frame of the
         Twist2D wheelsToTwist(const WheelVel&);
 //
-        /// \brief Update the robot's odometry based on the current encoder readings            [QUESTION]: NO UPDATE ON ROBOT's current pose?
-        /// \param left - the left encoder angle (in radians)
+        /// \brief Update the robot's odometry based on the current encoder readings and  UPDATE ON ROBOT's current pose.
+        /// This function is used on odometer, which reflects the real life odometry data.
+        /// Precaution: In order to avoid confusion between two possible angle increment values, always make sure your maximum twist increments for translation and rotation (world frame)are less
+        /// than: maximum turning increment: (2*pi* wheel_radius)/wheel_base. Maximum translation increment: 2*pi*wheel_radius
+        /// \param left - the left encoder angle (in radians). should take in the total left & right encoder value, not the increment!!
         /// \param right - the right encoder angle (in radians)
         /// \return the velocities of each wheel, assuming that they have been
         /// constant since the last call to updateOdometry  (NOT considering delta_t)
-        WheelVel updateOdometry(const double&, const double&);      //TODO: should take in the total left & right encoder value, not the increment!!
+        WheelVel updateOdometry(const double&, const double&);
 //
         /// \brief update the odometry of the diff drive robot, assuming that
-        /// it follows the given body twist for one time  unit , including: pose    (ASSUMPTION: theta won't be taken into account in the actual calculation)
+        /// it follows the given body twist for one time  unit , including: pose. This function should be used on the robot control
         /// \param cmd - the body twist command to send to the robot
-        void feedforward(const Twist2D&);       //TODO: you should integrate with integrateTwsit function, instead of adding up angles.
+        void feedforward(const Twist2D&);
 
-        /// \brief get the current pose of the robot
-        Twist2D get_pose();     //TODO: check if it gives you the twist of the total pose (in world frame), angle wrapped.
-//
+        /// \brief get the current pose of the robot, in the world frame.
+        /// \return Twist2D
+        Twist2D get_pose();
+
+        /// \brief update the current position of the wheels with wheel angle increments
+        /// \return WheelPos
+        WheelPos update_wheel_pos(const WheelVel&);
+
         /// \brief get the wheel speeds, based on the last encoder update
         WheelVel wheelVelocities() const;
 //
@@ -89,7 +98,7 @@ namespace rigid2d {
         void reset(Twist2D ps);
 
     private:
-        Twist2D pose;
+        Transform2D pose_transform;
         WheelVel wheel_velocities;
         WheelPos wheel_positions;
         double wheel_base;
