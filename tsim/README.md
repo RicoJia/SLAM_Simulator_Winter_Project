@@ -1,12 +1,21 @@
 # ME495 - Turtlesim Trajectory Control in Roscpp 
 
-This project is an educational project where I became familiar with essential Roscpp building blocks, including:
-- Publisher and subscriber
-- Service and service client
-- Launch file
-- Parameter Server
-- Turtlesim control 
-- Rosmsg
+This project contains two parts: turtle_rect and turtle_way. 
+
+- turtle_rect is a project where I became familiar with essential Roscpp building blocks, including:
+    - Publisher and subscriber
+    - Service and service client
+    - Launch file
+    - Parameter Server
+    - Turtlesim control 
+    - Rosmsg
+
+In this part, a turtle on turtlesim will follow a rectangular path using feedforward control. 
+
+- turtle_way is an example of simulating differential drive robot control using rigid2d librarie's waypoint_generator. The waypoint_generator generates 
+a body twist for the robot based on a given set of waypoints. See [rigid2d library](../rigid2d/include/rigid2d/waypoints.hpp) for more information.
+
+## Part 1: turtle_rect 
 
 In this project, turtlesim is launched and a turtle travels along a rectangular trajectory. The turtle will first be teleported to the lower left corner 
 of the rectangle, then start travelling along the rectangle's sides. The velocity Its position can also be reset to the lower left corner of the box, (its trajectory is not reset).
@@ -65,3 +74,19 @@ the real x and y pose (dead-reckoning estimations come solely from velocity comm
 angle [wrapping mechanism](https://stackoverflow.com/questions/11498169/dealing-with-angle-wrap-in-c-code), so the angle is always within [-pi, pi].
 
 
+## Part 2: turtle_way
+
+In this project, turtlesim is launched and a turtle travels along a pentagon-shaped trajectory. The turtle will first be teleported to a specified location on turtlesim (parameters are set [here](./config/params.yaml)),
+then the turtle starts travelling along the pentagon's sides. To see Turtlesim and the effect of wheel velocity control, 
+run ```$ roslaunch tsim turtle_pent.launch ```
+
+As a demonstration of simulating differential drive robot control, turtle_way can also be used to visualize wheel velocity control on a differential 
+drive robot in Rviz. Also, the accurateness of the robot's odometry is calculated based on the pose information from turtlesim topic: /turtle1/pose.  
+
+To see the visualization, as well as a live illustration  of the robot's odometry accurateness, run 
+``` $ roslaunch tsim turtle_odom.launch ```  
+
+[<img src=https://user-images.githubusercontent.com/39393023/73126242-dece3180-3f75-11ea-8151-d04e27988b68.png width="600">](https://www.youtube.com/embed/HyPuW4h9Eag)
+
+- Robot's Odometry Accurateness Illustration 
+<img src=https://user-images.githubusercontent.com/39393023/73126069-c3fabd80-3f73-11ea-9b0a-c96f9d0c51a2.png width="600">

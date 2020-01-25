@@ -2,6 +2,24 @@
 Author: Rico Ruotong Jia
 # Tasks Submitted
 (List the tasks that you worked on and completed here)
+- Task 0.003 (Guideline Updates)
+- Task C.005 (ROSifying rigid2d)
+- Task C.007 (Adding a Twist2D)
+- Task C.006 (Unit Testing rigid2d)
+- Task C.008 (Integrate a Twist)
+- Task C.009 (Making Vector2D a Vector)
+- Task C.010 (Normalize angle, it may be useful)
+- Task E.000 (Math)
+- Task E.001 (DiffDrive class)
+- Task E.002 (Unit Test diff_drive)
+- Task E.003 (Waypoints)
+- Task E.004 (Odometry Node)
+- Task E.005 (Fake Encoders)
+- Task B.005 (Turtle Waypoints)
+- Task B.006 (Turtle Odometry)
+
+# Tasks Completed
+(List the tasks that you finished in previous assignments here)
 - Task A.000 (nuturtle_description package)
 - Task A.001 (Yaml File)
 - Task A.002 (Xacro File: Visual Only)
@@ -17,6 +35,3 @@ Author: Rico Ruotong Jia
 - Task C.002 (conceptual questions)
 - Task C.003 (adjoints and twists)
 - Task C.004 (test)
-# Tasks Completed
-(List the tasks that you finished in previous assignments here)
-
