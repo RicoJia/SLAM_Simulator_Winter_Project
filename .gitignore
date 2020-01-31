@@ -2,4 +2,4 @@
 .catkin_workspace
 *.o
 rigid2d_test
-#CMakeLists.txt
+CMakeLists.txt
