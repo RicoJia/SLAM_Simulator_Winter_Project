@@ -18,21 +18,38 @@
 ///     traj_reset (tsim/traj_set): Reset the turtle's position to the lower left corner of the rectangle.
 ///     However, this service does not restart the trajectory, i.e, the turtle's will finish the rest of the old trajectory
 
-#include "tsim/turtle_rect.hpp"
+#include "ros/ros.h"
+#include <sstream>
+#include "turtlesim/SetPen.h"
+#include "turtlesim/TeleportAbsolute.h"
+#include "geometry_msgs/Twist.h"
+#include "tsim/traj_reset.h"
+#include "tsim/PoseError.h"
+#include "std_srvs/Empty.h"
+#include "turtlesim/Pose.h"
+#include "math.h"
 
-bool reset_now = false;
-double x_dead_reckoning = 0;
-double y_dead_reckoning = 0;
-double theta_dead_reckoning = 0;
-int turn_counter = 0;
-double x_pos =  0;
-double y_pos = 0;
-tsim::PoseError pose_error_msg;
+#define PI 3.1415
+static bool reset_now = false;
+static double x_dead_reckoning = 0;
+static double y_dead_reckoning = 0;
+static double theta_dead_reckoning = 0;
+static int turn_counter = 0;
+static double x_pos =  0;
+static double y_pos = 0;
+static tsim::PoseError pose_error_msg;
+void drop_pen(ros::NodeHandle nh, bool);
 
+enum class State{
+    go_forward,
+    turn
+};
 
 bool pub_pose_error = false;
 
 /// \brief Set pen status of the turtle trajectory. If status is true, no trajectory. If status is false, there is trajectory in pink
+/// \param nh Node handle
+/// \param status True for dropping pen
 void drop_pen(ros::NodeHandle nh, bool status)
 {
     ros::service::waitForService("/turtle1/set_pen", 100);
@@ -48,6 +65,8 @@ void drop_pen(ros::NodeHandle nh, bool status)
 }
 
 /// \brief Teleport the turtle to the lower left corner of the box. It will wait until the real position is less than dist_thre away from the desired position
+/// \param nh node handle
+/// \param x, y: x y coordinate of the teleportation destination
 void teleport_2_bottom(ros::NodeHandle nh, double x, double y)
 {
     ros::service::waitForService("/turtle1/teleport_absolute", 100);
@@ -58,20 +77,24 @@ void teleport_2_bottom(ros::NodeHandle nh, double x, double y)
     teleportabsolute_srv.request.theta = 0;
 
    double dist_thre = 1;
-   while ( pow((x_pos - x),2)+ pow((y_pos - y),2) > dist_thre){
+
    //wait to get to the destination correctly
    teleport_client.call(teleportabsolute_srv);
+   while ( pow((x_pos - x),2)+ pow((y_pos - y),2) > dist_thre){
    ros::spinOnce();
    }
 }
 
 /// \brief Call back function for traj_reset service.
+/// \param request Request message generated from service calling
+/// \param response Response to send back to the sender
 bool traj_reset_callback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response){
     reset_now = true;
     return true;
 }
 
 /// \brief Call back function for subscribed topic "/turtle1/pose"
+/// \param pose_msg - pose message from turtlesim node
 void pose_callback(const turtlesim::Pose& pose_msg)
 {
     double theta = pose_msg.theta;
@@ -80,16 +103,18 @@ void pose_callback(const turtlesim::Pose& pose_msg)
     pose_error_msg.x_error = x-x_dead_reckoning;
     pose_error_msg.y_error = y-y_dead_reckoning;
     pose_error_msg.theta_error = theta-theta_dead_reckoning;
-    if (pose_error_msg.theta_error > 3.1415 && pose_error_msg.x_error< 6.2831){
+    if (pose_error_msg.theta_error > PI && pose_error_msg.x_error< 6.2831){
         pose_error_msg.theta_error -= 6.2831;
     }
-    if (pose_error_msg.theta_error < -3.1415 && pose_error_msg.x_error > -6.2831){
+    if (pose_error_msg.theta_error < -PI && pose_error_msg.x_error > -6.2831){
         pose_error_msg.theta_error += 6.2831;
     }
     pub_pose_error = true;
 }
 
 /// \brief Linear pose estimation for Dead-reckoning
+/// \param dt - delta t: time increment
+/// \param v: linear velcity
 void update_linear_pos(double v, double dt){
     if (turn_counter==4) turn_counter = 0;
     switch (turn_counter){
@@ -105,6 +130,8 @@ void update_linear_pos(double v, double dt){
 }
 
 /// \brief Angular pose estimation for Dead-reckoning
+/// \param w - angular velocity
+/// \param dt - delta t: time increment
 void update_angular_pos(double w, double dt){
     theta_dead_reckoning += w*dt;
     if (theta_dead_reckoning > 6.28){

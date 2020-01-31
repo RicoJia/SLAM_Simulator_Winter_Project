@@ -64,6 +64,7 @@ rigid2d::WheelVel rigid2d::DiffDrive::updateOdometry(const double& l_encoding, c
     auto body_twist = wheelsToTwist(wheel_velocities);
     auto new_transform = integrateTwist(body_twist);
     pose_transform*=new_transform;
+
     return wheel_velocities;
 }
 
@@ -75,6 +76,10 @@ void rigid2d::DiffDrive::feedforward(const rigid2d::Twist2D& body_twist){
 
 rigid2d::WheelVel rigid2d::DiffDrive::wheelVelocities() const{
     return wheel_velocities;
+}
+
+rigid2d::WheelPos rigid2d::DiffDrive::wheelPositions() const{
+    return wheel_positions;
 }
 
 void rigid2d::DiffDrive::reset(rigid2d::Twist2D ps){

@@ -14,7 +14,7 @@ FakeDiffEncoders::FakeDiffEncoders(ros::NodeHandle& nh, ros::NodeHandle& nh2):dd
 
     nh2.getParam("right_wheel_joint", right_wheel_joint);
     nh2.getParam("left_wheel_joint",left_wheel_joint);
-    joint_pub = nh.advertise< sensor_msgs::JointState>("joint_states", 50);
+    joint_pub = nh.advertise< sensor_msgs::JointState>("joint_states_pure", 50);
     sub = nh.subscribe("cmd_vel", 10, &FakeDiffEncoders::sub_callback, this);
     dd = DiffDrive(0.0, 0.0, 0.0, wheel_base, wheel_radius);
 }

@@ -1,7 +1,7 @@
 #!/bin/sh
 g++ -o ./test.o ./main.cpp ./rigid2d.cpp
 
-if [ -a ./test1_input.txt ];
+if [ -a ./test1_input.txt ]
 then
   echo "test1_input.txt is found!"
   if ./test.o<./test1_input.txt | cmp ./test1_answer.txt;

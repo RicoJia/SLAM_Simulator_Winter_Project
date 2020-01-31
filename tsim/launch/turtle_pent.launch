@@ -8,7 +8,7 @@
     <remap from="/cmd_vel" to="/turtle1/cmd_vel"/>
 </node>
 
-  <arg name="rqt_plot_on" default="true" doc="set this to true if you want to see rqt_plot"/>
-  <node name="pose_plot" pkg="rqt_plot" type="rqt_plot" args="/pose_error" if="$(arg rqt_plot_on)"/>
+<!--   <arg name="rqt_plot_on" default="true" doc="set this to true if you want to see rqt_plot"/> -->
+<!--   <node name="pose_plot" pkg="rqt_plot" type="rqt_plot" args="/pose_error" if="$(arg rqt_plot_on)"/> -->
 
 </launch>

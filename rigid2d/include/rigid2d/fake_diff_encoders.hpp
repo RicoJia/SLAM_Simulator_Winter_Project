@@ -21,9 +21,9 @@ using std::string;
 ///     sensor_msgs::geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
 ///     frequency : frequency for updating cmd_vel. This is needed for determining how far the robot goes at a rate of cmd_vel.
 /// SUBSCRIBES:
-///     sensor_msgs::JointState&  joint state messages for left and right wheel velocities
+///     geometry_msgs/Twist cmd_vel
 /// PUBLISHES:
-///     sensor_msgs::nav_msgs::Odometry construct_odom_msg(const rigid2d::Twist2D&, const rigid2d::Twist2D&);
+///     sensor_msgs::JointState&  joint state_pure messages for uncorrupted left and right wheel velocities
 /// BROADCAST:
 ///     /tf transformation between /odom frame and /base_link fram
 

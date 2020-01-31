@@ -77,7 +77,8 @@ namespace rigid2d {
         /// \return the velocities of each wheel, assuming that they have been
         /// constant since the last call to updateOdometry  (NOT considering delta_t)
         WheelVel updateOdometry(const double&, const double&);
-//
+
+
         /// \brief update the odometry of the diff drive robot, assuming that it follows the given body twist for one time  unit , including: pose. This function should be used on the robot control
         /// \param cmd - the body twist command to send to the robot
         void feedforward(const Twist2D&);
@@ -93,6 +94,11 @@ namespace rigid2d {
         /// \brief get the wheel speeds, based on the last encoder update
         /// \return wheel velocities
         WheelVel wheelVelocities() const;
+
+        /// \brief get the wheel speeds, based on the last encoder update
+        /// \return wheel positions
+        WheelPos wheelPositions() const;
+
 //
         /// \brief reset the robot to the given position/orientation
         void reset(Twist2D ps);

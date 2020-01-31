@@ -11,3 +11,14 @@ odom_frame_id: 'odom'
 body_frame_id: 'base_link'
 left_wheel_joint: 'left_wheel_axle'
 right_wheel_joint: 'right_wheel_axle'
+map_frame_id: 'map'
+slip_miu: 0.0001
+odom_miu: 0.0001
+odom_dift: 0.0000000000001   #1e-9? not sure if this work, 10^-9#slip_miu: 0.01
+
+obstacles_x: [3.0, 2.0, 1.0]
+obstacles_y: [4.0, 4.0, 4.0]
+obstacle_radius: 0.2    #assume cylindrical obstacles
+
+#odom_miu: 0.001
+#odom_dift: 0.0000000001   #1e-9? not sure if this work, 10^-9
