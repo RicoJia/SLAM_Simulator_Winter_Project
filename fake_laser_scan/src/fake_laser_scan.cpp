@@ -21,28 +21,53 @@ using rigid2d::Transform2D;
 using rigid2d::Vector2D;
 using rigid2d::Twist2D;
 
-constexpr double PI = 3.1415;
+constexpr double PI = 3.14159265;
 constexpr char FRAME_ID[] = "base_link";
 
 //Helper functions:
 
 ///\brief Coordinate system for rectangular obstacles
-///\param Frames (Transform2D) of the four vertices of a rectangle in the world frame.
+///\param Frames (Transform2D) Inverse transformation of the frame on four vertices of a rectangle in the world frame.
 /// The Frames are set up following these rules: 1. right hand frames 2. positive axes of any frame points towards another two sides.
 class RectTracker{
 public:
     RectTracker(){}
-    explicit RectTracker(double x, double y, double theta, ){
+
+    explicit RectTracker(double x, double y, double theta, double length, double width){
         Transform2D T_center(Vector2D(x,y), theta);
-        T_b_l = T_center*
+        double d_half = length/2.0; double w_half = width/2.0;
+        vertex_frames_inv[0] = (T_center*Transform2D(Vector2D(-1*d_half, -1*w_half), 0.0)).inv();
+        vertex_frames_inv[1]= (T_center*Transform2D(Vector2D( 1*d_half, -1*w_half), PI/2.0)).inv();
+        vertex_frames_inv[2] = (T_center*Transform2D(Vector2D( 1*d_half,  1*w_half), PI)).inv();
+        vertex_frames_inv[3]= (T_center*Transform2D(Vector2D(-1*d_half,  1*w_half), 3.0*PI/2.0)).inv();
+    }
+    ///\brief Checks if a laser beam will hit part of the rectangle. If so, it will return the scan distance. Otherwise, it will return the scan_max
+    ///\param scanner_trans (Transform2D): world frame pose of the scanner
+    ///\param endpoint_trans (Transform2D): world frame pose of the laserbeam
+    ///\param scan_max (double): maximum scan range
+    /// \return scan distance
+    double get_rect_scan_distance(const Transform2D& scanner_trans, const Transform2D& endpoint_trans, const double& scan_max);
+private:
+    Transform2D vertex_frames_inv[4];
+};
+
+
+double RectTracker::get_rect_scan_distance(const Transform2D& scanner_trans, const Transform2D& endpoint_trans, const double& scan_max){
+    for (auto vertex_frame: vertex_frames_inv){
+        auto end_point = vertex_frame * endpoint_trans;
+        if (end_point.displacement().y <= 0) return scan_max;
     }
 
-private:
-    Transform2D T_b_l;
-    Transform2D T_b_r;
-    Transform2D T_u_r;
-    Transform2D T_u_l;
-};
+    for (auto vertex_frame: vertex_frames_inv){
+        auto scanner = vertex_frame*scanner_trans;
+        auto scanner_position = scanner.displacement();
+        if (scanner_position.y <= 0){
+            auto end_point_position = ( vertex_frame * endpoint_trans).displacement();
+            double ret_scan_distance = scan_max/( (end_point_position.y - scanner_position.y)/abs(scanner_position.y));
+            return ret_scan_distance;
+        }
+    }
+}
 
 class FakeLaserScan{
 public:
@@ -60,6 +85,22 @@ public:
         nh2.getParam("circular_obstacles_x", circular_obstacles_x);
         nh2.getParam("circular_obstacles_y", circular_obstacles_y);
         nh2.getParam("circular_obstacle_radius", circular_obstacle_radius);
+
+        std::vector<double> rectangular_obstacles_x, rectangular_obstacles_y, rectangular_obstacles_length, rectangular_obstacles_width, rectangular_obstacles_orientation;
+        nh2.getParam("rectangular_obstacles_x", rectangular_obstacles_x);
+        nh2.getParam("rectangular_obstacles_y", rectangular_obstacles_y);
+        nh2.getParam("rectangular_obstacles_length", rectangular_obstacles_length);
+        nh2.getParam("rectangular_obstacles_width", rectangular_obstacles_width);
+        nh2.getParam("rectangular_obstacles_orientation", rectangular_obstacles_orientation);
+
+        for (unsigned int i = 0; i < rectangular_obstacles_x.size(); ++i){
+            RectTracker R_temp(rectangular_obstacles_x[i],
+                          rectangular_obstacles_y[i],
+                          rectangular_obstacles_orientation[i],
+                          rectangular_obstacles_length[i],
+                          rectangular_obstacles_width[i]);
+            rect_tracker_vec.push_back(R_temp);
+        }
     }
     
     void pub_scan_msgs();
@@ -77,6 +118,7 @@ private:
     std::vector<double> circular_obstacles_y;
     ros::Subscriber map_sub;
     Transform2D T_bs;
+    std::vector<RectTracker> rect_tracker_vec;
 
     ///\brief update the range and bearing of a landmark relative to the laser scanner. The bearing is [0, 2*pi)
     void update_range_and_heading (double& range, double& bearing, unsigned int i);
@@ -90,7 +132,7 @@ private:
 
     ///\brief update the angle of occupancy (largest angle of view of the obstacle in laser scan), based on the range of the landmark relative to the obstacle
     /// the angle_of_occupancy will be updated to [0, pi]
-    void update_angle_of_occupancy(double& angle_of_occupancy, double range);
+    double update_angle_of_occupancy(double angle_of_occupancy, double range);
 
     ///\brief, given the range of obstacle relative to the laser scanner, and the angle of the laser scan, relative to the line connecting the center of a cylindrical obstacle and the laser scanner, we can compute the distance between
     /// the outerior of the circular obstacle and the center of laser scanner.
@@ -98,11 +140,14 @@ private:
     double get_scan_distance(double total_angle_increment, double range);
 
     ///\brief Calculate the index of a scan angle in the scanner_array, given the angle and angle_increment. Scanner_array[0] should be 0 rad, and its last element should be 2*PI.
-    ///\brief index of the scan angle.
+    ///\return index of the scan angle.
     inline int angle_to_index(double angle, double angle_increment);
+
+    ///\brief Calculate the endpoint of a laser scanner beam in world frame, represented in Transform2D
+    ///\param theta: angle between the laser beam and the robot's orientation.
+    ///\return endpoint_trans (Transform2D): Transform from world frame to endpoint
+    Transform2D get_endpoint_transform(double theta);
 };
-
-
 
 void FakeLaserScan::pub_scan_msgs(){
     ros::Time scan_time = ros::Time::now();
@@ -121,38 +166,74 @@ void FakeLaserScan::pub_scan_msgs(){
     scan.ranges.resize(num_readings);
     scan.intensities.resize(num_readings);
 
-    for(unsigned int i = 0; i < num_readings; ++i){
-        scan.intensities[i] = 300; //Here intensity is not a very important factor??? Ask Matt.
-        double theta = 2*PI/num_readings*i;
-//        update_pose();
-        populate_scan_range(scan, scan_radius);
+    //TODO: rectangle
+    populate_scan_range(scan, scan_radius);
 
-        // update ith angle from the scan on circular obstacles
-        for (unsigned int i = 0; i<circular_obstacles_x.size();++i){
-            double range, bearing;
-            update_range_and_heading(range, bearing, i);
-            if (range < scan_radius+circular_obstacle_radius){
-                if (range<circular_obstacle_radius){
-                    populate_scan_range(scan, 0.0);
-                }
-                else{
-                    double angle_of_occupancy;
-                    update_angle_of_occupancy(angle_of_occupancy, range);
-                    double total_angle_increment = 0;
-                    while (angle_of_occupancy > total_angle_increment){
-                        double scan_distance = get_scan_distance(total_angle_increment, range);
+    for(unsigned int i = 0; i < num_readings; ++i){
+        for (auto& rect_tracker: rect_tracker_vec){
+            double theta = 2*PI/num_readings*i;
+            auto T_sp = get_endpoint_transform(theta);  //end point pose
+            double scan_distance_rect = rect_tracker.get_rect_scan_distance(T_bs.inv(), T_sp, scan_radius);
+            if (scan.ranges[i] > scan_distance_rect)
+                scan.ranges[i] = scan_distance_rect;
+        }
+    }
+
+
+    // update ith angle from the scan on circular obstacles
+    for (unsigned int i = 0; i<circular_obstacles_x.size();++i){
+        double range, bearing;
+        update_range_and_heading(range, bearing, i);
+        if (range < scan_radius+circular_obstacle_radius){
+            if (range<circular_obstacle_radius){
+                populate_scan_range(scan, 0.0);
+            }
+            else{
+                double angle_of_occupancy;
+                angle_of_occupancy = update_angle_of_occupancy(angle_of_occupancy, range);
+                double total_angle_increment = 0;
+                while (angle_of_occupancy > total_angle_increment){
+                    double scan_distance = get_scan_distance(total_angle_increment, range);
+                    if(scan.ranges[angle_to_index(angles::normalize_angle_positive(bearing + total_angle_increment), scan.angle_increment) ] >= scan_distance)
                         scan.ranges[angle_to_index(angles::normalize_angle_positive(bearing + total_angle_increment), scan.angle_increment) ] = scan_distance;
+                    if (scan.ranges[angle_to_index(angles::normalize_angle_positive(bearing - total_angle_increment), scan.angle_increment) ] >= scan_distance)
                         scan.ranges[angle_to_index(angles::normalize_angle_positive(bearing - total_angle_increment), scan.angle_increment) ] = scan_distance;
-                        total_angle_increment+=scan.angle_increment;
-//                        total_angle_increment = angle_of_occupancy;
-                    }
+                    total_angle_increment+=scan.angle_increment;
                 }
             }
         }
-
-        //TODO: rectangle
     }
-//    scan.ranges[359] = 1;
+//    for(unsigned int i = 0; i < num_readings; ++i){
+//        scan.intensities[i] = 300; //Here intensity is not a very important factor??? Ask Matt.
+//        double theta = 2*PI/num_readings*i;
+////        update_pose();
+//        // update ith angle from the scan on circular obstacles
+//        for (unsigned int i = 0; i<circular_obstacles_x.size();++i){
+//            double range, bearing;
+//            update_range_and_heading(range, bearing, i);
+//            if (range < scan_radius+circular_obstacle_radius){
+//                if (range<circular_obstacle_radius){
+//                    populate_scan_range(scan, 0.0);
+//                }
+//                else{
+//                    double angle_of_occupancy;
+//                    double total_angle_increment = 0;
+//                    while (angle_of_occupancy > total_angle_increment){
+//                        double scan_distance = get_scan_distance(total_angle_increment, range);
+//                        scan.ranges[angle_to_index(angles::normalize_angle_positive(bearing + total_angle_increment), scan.angle_increment) ] = scan_distance;
+//                        scan.ranges[angle_to_index(angles::normalize_angle_positive(bearing - total_angle_increment), scan.angle_increment) ] = scan_distance;
+//                        total_angle_increment+=scan.angle_increment;
+////                        total_angle_increment = angle_of_occupancy;
+//                    }
+//
+//                }
+//            }
+//        }
+//
+//        //TODO: rectangle
+//    }
+
+
     scan_pub.publish(scan);
 }
 
@@ -185,7 +266,6 @@ void  FakeLaserScan::update_range_and_heading (double& range, double& bearing, u
     bearing = angles::normalize_angle_positive( atan2(p_b.y, p_b.x) );      //output is [0, 2pi)
 }
 
-
 void FakeLaserScan::populate_scan_range(sensor_msgs::LaserScan& scan, double val){
     for(unsigned int i = 0; i < num_readings; ++i) {
         scan.ranges[i] = val;
@@ -193,8 +273,9 @@ void FakeLaserScan::populate_scan_range(sensor_msgs::LaserScan& scan, double val
     }
 }
 
-void FakeLaserScan::update_angle_of_occupancy(double& angle_of_occupancy, double range){
+double FakeLaserScan::update_angle_of_occupancy(double angle_of_occupancy, double range){
     angle_of_occupancy = angles::normalize_angle_positive( asin(circular_obstacle_radius/range) );
+    return angle_of_occupancy;
 }
 
 
@@ -208,6 +289,12 @@ double FakeLaserScan::get_scan_distance(double total_angle_increment, double ran
 
 inline int FakeLaserScan::angle_to_index(double angle, double angle_increment){
     return (int)(angle/angle_increment);
+}
+
+Transform2D FakeLaserScan::get_endpoint_transform(double theta){
+    Transform2D Tbp(Vector2D(scan_radius*cos(theta), scan_radius*sin(theta)));
+    auto Tsp = (T_bs.inv())*Tbp;
+    return Tsp;
 }
 
 

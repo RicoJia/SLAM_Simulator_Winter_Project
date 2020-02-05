@@ -29,9 +29,6 @@ rectangular_obstacles_length: [8.4, 8.4, 8.0, 8.0]
 rectangular_obstacles_width: [0.2, 0.2, 0.2, 0.2]
 rectangular_obstacles_orientation: [0.0, 0.0, 1.57, -1.57]
 
-
-
-
 #laser scanner params
 laser_frequency: 20
 scan_radius: 3.0
