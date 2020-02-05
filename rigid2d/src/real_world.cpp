@@ -5,7 +5,7 @@
 /// \brief Node that gives simulates the real world pose of a diff drive robot, after adding noise to the wheels for slippage simulation. The node also determines the encoder
 /// values of wheels, which will have a drift.
 /// The real_world listens to only the velocity info from Fake Encoders, then it keeps track of the robot's wheel position using that information
-/// Also, the real world will assume the robot's initial position is in (0,0)
+/// Also, the real world will set the robot's initial position to (0, 0,0)
 
 /// PARAMETERS:
 ///    dd: DiffDrive object
@@ -13,7 +13,7 @@
 ///    wheel_radius - radius of each wheel
 ///    frequency - The frequency of the control loop
 /// PUBLISHES:  (after receiving subscribed topic updates)
-///    map (nav_msgs/Odometry): map_odometry message of the robot
+///    map (nav_msgs/Odometry): odometry message containing the real pose info of the robot in the map frame
 /// BROADCASTS:
 ///    tf/transform_broadcaster: transform for Rviz
 /// SUBSCRIBES:
@@ -63,6 +63,7 @@ private:
     string right_wheel_joint;
     rigid2d::DiffDrive diff_drive;
     double slip_miu, odom_miu, odom_drift;
+
     /// \brief Callback function for receiving joint_state msg.
     /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
     void sub_callback(const sensor_msgs::JointState& msg);
@@ -72,6 +73,7 @@ private:
     geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
 
     nav_msgs::Odometry construct_map_odom_msg(const rigid2d::Twist2D&, const rigid2d::Twist2D&);
+
     sensor_msgs::JointState construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel);
 };
 

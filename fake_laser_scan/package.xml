@@ -64,9 +64,15 @@
   <build_export_depend>tf</build_export_depend>
   <exec_depend>tf</exec_depend>
 
+  <build_depend>angles</build_depend>
+  <build_export_depend>angles</build_export_depend>
+  <exec_depend>angles</exec_depend>
+
   <build_depend>geometry_msgs</build_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <exec_depend>geometry_msgs</exec_depend>
+
+  <build_depend>rigid2d</build_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

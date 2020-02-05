@@ -13,8 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
         visualization_msgs
         geometry_msgs
         tf
+        angles
 )
 
+find_package(rigid2d REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -106,8 +108,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-  LIBRARIES fake_laser_scan
-  CATKIN_DEPENDS roscpp sensor_msgs visualization_msgs geometry_msgs tf
+#  LIBRARIES fake_laser_scan
+  CATKIN_DEPENDS roscpp sensor_msgs visualization_msgs geometry_msgs tf angles
 #  DEPENDS system_lib
 )
 
@@ -120,6 +122,8 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+        ${rigid2d_INCLUDE_DIRS}
+
 )
 
 ## Declare a C++ library
@@ -151,7 +155,9 @@ add_executable(obstacles src/obstacles.cpp)
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}
    ${catkin_LIBRARIES}
- )
+         rigid2d
+
+         )
 target_link_libraries(obstacles
         ${catkin_LIBRARIES}
         )
@@ -180,7 +186,7 @@ target_link_libraries(obstacles
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
  install(TARGETS ${PROJECT_NAME}
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
  )
 

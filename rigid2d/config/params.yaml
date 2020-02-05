@@ -12,13 +12,29 @@ body_frame_id: 'base_link'
 left_wheel_joint: 'left_wheel_axle'
 right_wheel_joint: 'right_wheel_axle'
 map_frame_id: 'map'
-slip_miu: 0.0001
-odom_miu: 0.0001
-odom_dift: 0.0000000000001   #1e-9? not sure if this work, 10^-9#slip_miu: 0.01
+slip_miu: 0.0000
+odom_miu: 0.0000
+odom_dift: 0.0000000000000   #1e-9? not sure if this work, 10^-9#slip_miu: 0.01
 
-obstacles_x: [3.0, 2.0, 1.0]
-obstacles_y: [4.0, 4.0, 4.0]
-obstacle_radius: 0.2    #assume cylindrical obstacles
+circular_obstacles_x: [3.0, 2.0, 1.0]
+circular_obstacles_y: [3.0, 3.0, 3.0]
+circular_obstacle_radius: 0.2    #assume cylindrical circular_obstacles
+
+#rectangular obstacles: x, y are coordinates of the obstacles' centers in the map frame.
+# orientation is the angle between the map's positive x axis, and the obstacle's positive x axis (obstacle frame is located at itscenter)
+# length is defined as the length of the side that is parallel to the x axis of the cube. Width is parallel to the y axis of the cube. Height is automatically 0.5m
+rectangular_obstacles_x: [0.0, 0.0, 4.1, -4.1]
+rectangular_obstacles_y: [-4.1, 4.1, 0.0, 0.0]
+rectangular_obstacles_length: [8.4, 8.4, 8.0, 8.0]
+rectangular_obstacles_width: [0.2, 0.2, 0.2, 0.2]
+rectangular_obstacles_orientation: [0.0, 0.0, 1.57, -1.57]
+
+
+
+
+#laser scanner params
+laser_frequency: 20
+scan_radius: 3.0
 
 #odom_miu: 0.001
 #odom_dift: 0.0000000001   #1e-9? not sure if this work, 10^-9
