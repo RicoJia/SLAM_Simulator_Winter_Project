@@ -7,18 +7,12 @@
     <arg name="use_jsp_gui" value="false" doc="False for not using joint state publisher"/>
 </include>
 
-<node name="Obstacles" pkg="fake_laser_scan" type="obstacles">
-      <rosparam file="$(find rigid2d)/config/params.yaml" />
-</node>
-
-<!-- Convert depth image to laser scan -->
-<node name="FakeLaserScanner" pkg="fake_laser_scan" type="fake_laser_scan" output="screen" >
-  <param name="use_sim_time" value="true"/>
-  <rosparam file="$(find rigid2d)/config/params.yaml" />
+<node name="Obstacles" pkg="real_world" type="obstacles">
+      <rosparam file="$(find real_world)/config/params.yaml" />
 </node>
 
 <node name = "Odometer" pkg = "rigid2d"  type = "rigid2d_Odometer_node" output="screen" >
-  <rosparam file="$(find rigid2d)/config/params.yaml" />
+  <rosparam file="$(find real_world)/config/params.yaml" />
   <remap from="body_frame_id" to="~body_frame_id"/>
   <remap from="right_wheel_joint" to="~right_wheel_joint"/>
   <remap from="left_wheel_joint" to="~left_wheel_joint"/>
@@ -26,7 +20,7 @@
 </node>
 
 <node name = "Fake_Diff_Encoders" pkg = "rigid2d"  type = "rigid2d_Fake_Diff_Encoders_node" output="screen" >
-  <rosparam file="$(find rigid2d)/config/params.yaml" />
+  <rosparam file="$(find real_world)/config/params.yaml" />
   <remap from="body_frame_id" to="~body_frame_id"/>
   <remap from="right_wheel_joint" to="~right_wheel_joint"/>
   <remap from="left_wheel_joint" to="~left_wheel_joint"/>
@@ -34,8 +28,8 @@
   <remap from="/cmd_vel" to="/turtle1/cmd_vel"/>
 </node>
 
-<node name = "RealWorld" pkg = "rigid2d"  type = "rigid2d_Real_World_node" output="screen" >
-  <rosparam file="$(find rigid2d)/config/params.yaml" />
+<node name = "RealWorld" pkg = "real_world"  type = "real_world" output="screen" >
+  <rosparam file="$(find real_world)/config/params.yaml" />
   <remap from="body_frame_id" to="~body_frame_id"/>
   <remap from="right_wheel_joint" to="~right_wheel_joint"/>
   <remap from="left_wheel_joint" to="~left_wheel_joint"/>

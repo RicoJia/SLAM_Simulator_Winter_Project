@@ -30,7 +30,7 @@ rectangular_obstacles_width: [0.2, 0.2, 0.2, 0.2]
 rectangular_obstacles_orientation: [0.0, 0.0, 1.57, -1.57]
 
 #laser scanner params
-laser_frequency: 20
+laser_frequency: 40
 scan_radius: 3.0
 
 #odom_miu: 0.001

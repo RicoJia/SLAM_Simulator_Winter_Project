@@ -153,7 +153,7 @@ target_link_libraries(${PROJECT_NAME}
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
 add_executable(${PROJECT_NAME}_Odometer_node src/odometer.cpp)
 add_executable(${PROJECT_NAME}_Fake_Diff_Encoders_node src/fake_diff_encoders.cpp)
-add_executable(${PROJECT_NAME}_Real_World_node src/real_world.cpp)
+#add_executable(${PROJECT_NAME}_Real_World_node src/real_world.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -180,11 +180,11 @@ target_link_libraries(${PROJECT_NAME}_Fake_Diff_Encoders_node
         ${catkin_LIBRARIES}
         ${PROJECT_NAME}
 )
-
-target_link_libraries(${PROJECT_NAME}_Real_World_node
-        ${catkin_LIBRARIES}
-        ${PROJECT_NAME}
-        )
+#
+#target_link_libraries(${PROJECT_NAME}_Real_World_node
+#        ${catkin_LIBRARIES}
+#        ${PROJECT_NAME}
+#        )
 #############
 ## Install ##
 #############
@@ -213,9 +213,9 @@ install(TARGETS ${PROJECT_NAME}_Fake_Diff_Encoders_node
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 
-install(TARGETS ${PROJECT_NAME}_Real_World_node
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+#install(TARGETS ${PROJECT_NAME}_Real_World_node
+#        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#        )
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

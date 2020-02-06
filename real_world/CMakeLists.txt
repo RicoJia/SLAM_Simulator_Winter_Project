@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fake_laser_scan)
+project(real_world)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -14,7 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
         geometry_msgs
         tf
         angles
-)
+        nav_msgs
+
+        )
 
 find_package(rigid2d REQUIRED)
 ## System dependencies are found with CMake's conventions
@@ -109,8 +111,9 @@ find_package(rigid2d REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES fake_laser_scan
-  CATKIN_DEPENDS roscpp sensor_msgs visualization_msgs geometry_msgs tf angles
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp sensor_msgs visualization_msgs geometry_msgs tf angles nav_msgs
+
+        #  DEPENDS system_lib
 )
 
 ###########
@@ -139,7 +142,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME} src/fake_laser_scan.cpp)
+add_executable(${PROJECT_NAME} src/real_world.cpp)
 add_executable(obstacles src/obstacles.cpp)
 
 ## Rename C++ executable without prefix

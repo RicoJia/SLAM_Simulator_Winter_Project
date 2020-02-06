@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>fake_laser_scan</name>
+  <name>real_world</name>
   <version>0.0.1</version>
-  <description>fake_laser_scanner for SLAM simulation </description>
+  <description>real_world for SLAM simulation </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/fake_laser_scan</url> -->
+  <!-- <url type="website">http://wiki.ros.org/real_world</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -71,6 +71,10 @@
   <build_depend>geometry_msgs</build_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <exec_depend>geometry_msgs</exec_depend>
+
+  <build_depend>  nav_msgs </build_depend>
+  <build_export_depend>  nav_msgs</build_export_depend>
+  <exec_depend>  nav_msgs</exec_depend>
 
   <build_depend>rigid2d</build_depend>
 
