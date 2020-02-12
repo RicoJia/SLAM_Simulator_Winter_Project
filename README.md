@@ -1,37 +1,57 @@
-# ME495 Sensing, Navigation, and Machine Learning
-Author: Rico Ruotong Jia
-# Tasks Submitted
-(List the tasks that you worked on and completed here)
-- Task 0.003 (Guideline Updates)
-- Task C.005 (ROSifying rigid2d)
-- Task C.007 (Adding a Twist2D)
-- Task C.006 (Unit Testing rigid2d)
-- Task C.008 (Integrate a Twist)
-- Task C.009 (Making Vector2D a Vector)
-- Task C.010 (Normalize angle, it may be useful)
-- Task E.000 (Math)
-- Task E.001 (DiffDrive class)
-- Task E.002 (Unit Test diff_drive)
-- Task E.003 (Waypoints)
-- Task E.004 (Odometry Node)
-- Task E.005 (Fake Encoders)
-- Task B.005 (Turtle Waypoints)
-- Task B.006 (Turtle Odometry)
+# Simulator for SLAM Algorithms
 
-# Tasks Completed
-(List the tasks that you finished in previous assignments here)
-- Task A.000 (nuturtle_description package)
-- Task A.001 (Yaml File)
-- Task A.002 (Xacro File: Visual Only)
-- Task A.003 (Launch File)
-- Task A.004 (README)
-- Task B.000 (tsim package)
-- Task B.001 (turtle_rect node)
-- Task B.002 (subscriber and service)
-- Task B.003 (trect.launch)
-- Task B.004 (documentation)
-- Task C.000 (library implementation)
-- Task C.001 (main implementation)
-- Task C.002 (conceptual questions)
-- Task C.003 (adjoints and twists)
-- Task C.004 (test)
+### Author: Rico Ruotong Jia
+
+This project serves as a light-weight differential drive robot simulator for various SLAM algorithms. 
+
+- What is included:
+    - Kinematics model of the robot (pose calculation using [screw theory](https://en.wikipedia.org/wiki/Screw_theory))
+    - Odometer of the robot, with visualization on Turtlesim and configurable Gaussian noise 
+    - 360-degree Lidar Measurement 
+    - Closed loop trajectory following of the robot with turn and go strategy
+    
+- What has not yet been included: 
+    - The slam algorithm part is left for interested users to implement
+    - Collision Detection
+    - Dynamic model of the robot
+    - Noise on Lidar scan measurement 
+
+![Screenshot from 2020-02-10 23-55-39](https://user-images.githubusercontent.com/39393023/74294928-16bece00-4d05-11ea-9538-5effafc6b0f5.png)
+### Usage of the project 
+
+To successfully run this project, first create the workspace
+``` 
+cd ~ 
+mkdir -p SLAM_Simulator/src  
+```
+
+then copy the src directory to ```SLAM_Simulator/src```
+
+Build the workspace and run the project 
+```
+$ cd ~/SLAM_Simulator 
+$ catkin_make
+$ source devel/setup.bash
+$ roslaunch tsim odom turtle_odom.launch 
+```
+
+### Packages and Key Files
+This project consists of the following four packages: 
+
+- nuturtle_description
+    - contains the URDF and robot's configuration files (files in nuturtle_description/config)
+- real_world 
+    - Calculates the robot's real world position based on the robot's intended body twist (real_world.cpp). 
+    - Calculates the robot's transform from the world frame to the odometer frame, based on configurable wheel slippage,  odometer noise and odometer drift (real_world.cpp)
+    - Publishes circular and rectangular obstacles (obstacles.cpp) 
+    - Publishes laser scan messages (real_world.cpp)
+    
+- rigid2d
+    - Library of 2D screw theory functions, including twist, frame transformation, etc. (see rigid2d.hpp)
+    - Kinematics model of a differential drive (diff_drive.cpp)
+    - Simulated odometer for Rviz Visualization (odometer.cpp)
+    - Simulated wheel encoder (fake_encoder.cpp)
+
+ 
+- tsim
+    - Motion control node for travelling in a pentagon trajectory using velocity commands (turtle_way.cpp)

@@ -1,8 +1,21 @@
 #wheel_width: The width of the wheels
 #wheel_radius: The radius of the wheels
+#frequency: publishing frequencies of "real_world" messages
 #wheel_base: The distance between the centers wheels
 #chassis_length: The length of the main chassis link
 #chassis_thickness: The thickness of the plate that forms the chassis
+#rectangular_obstacles_length: length of a rectangular obstacles' side along its positive x axes
+#rectangular_obstacles_width: length of rectangular obstacles' side perpendicular to its positive x axes
+#rectangular_obstacles_orientation: angle between the rectangular obstacles' positive x axes and the world frame's positive x axes
+#circular obstacles: x, y are coordinates of the obstacles' centers in the map frame.
+#rectangular obstacles: x, y are coordinates of the obstacles' centers in the map frame.
+#orientation is the angle between the map's positive x axis, and the obstacle's positive x axis (obstacle frame is located at itscenter)
+#length is defined as the length of the side that is parallel to the x axis of the cube. Width is parallel to the y axis of the cube. Height is automatically 0.5m
+#laser_frequency: update freuqency of the laser scanner
+#scan_radius: maximum scan radius of the laser scanner
+#slip_miu: standard deviation of robot's slippage
+#odom_miu: standard deviation of odometer noise
+#odom_dift: drift of the odometer per 1/frequency second
 
 wheel_radius: 0.2
 wheel_base: 1.2
@@ -14,24 +27,14 @@ right_wheel_joint: 'right_wheel_axle'
 map_frame_id: 'map'
 slip_miu: 0.0000
 odom_miu: 0.0000
-odom_dift: 0.0000000000000   #1e-9? not sure if this work, 10^-9#slip_miu: 0.01
-
+odom_dift: 0.0000000000000
 circular_obstacles_x: [3.0, 2.0, 1.0]
 circular_obstacles_y: [3.0, 3.0, 3.0]
 circular_obstacle_radius: 0.2    #assume cylindrical circular_obstacles
-
-#rectangular obstacles: x, y are coordinates of the obstacles' centers in the map frame.
-# orientation is the angle between the map's positive x axis, and the obstacle's positive x axis (obstacle frame is located at itscenter)
-# length is defined as the length of the side that is parallel to the x axis of the cube. Width is parallel to the y axis of the cube. Height is automatically 0.5m
 rectangular_obstacles_x: [0.0, 0.0, 4.1, -4.1]
 rectangular_obstacles_y: [-4.1, 4.1, 0.0, 0.0]
 rectangular_obstacles_length: [8.4, 8.4, 8.0, 8.0]
 rectangular_obstacles_width: [0.2, 0.2, 0.2, 0.2]
 rectangular_obstacles_orientation: [0.0, 0.0, 1.57, -1.57]
-
-#laser scanner params
 laser_frequency: 40
 scan_radius: 3.0
-
-#odom_miu: 0.001
-#odom_dift: 0.0000000001   #1e-9? not sure if this work, 10^-9

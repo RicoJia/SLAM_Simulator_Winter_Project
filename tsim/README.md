@@ -1,4 +1,4 @@
-# ME495 - Turtlesim Trajectory Control in Roscpp 
+# Turtlesim Trajectory Control in Roscpp 
 
 This project contains two parts: turtle_rect and turtle_way. 
 
@@ -32,7 +32,10 @@ For live demo, checkout my Youtube Channel:
 
 ### System setup
 
-python 2.7 (python 3 above will have trouble launching rqt_plot)
+- ROS Melodic 
+- Linux Ubuntu 18.04
+- C++ 17 compiler
+- python 2.7 (python 3 above will have trouble launching rqt_plot)
 
 ### Usage
 To see the turtle travelling in a rectangular trajectory and see visualized pose errors on rqt_plot, do 
@@ -53,7 +56,6 @@ $ roslaunch tsim trect.launch rqt_plot_on:=false
 - src/turtle_rect.cpp - node for turtle's trajectory control 
 - src/turtle_rect.h - Header file for turtle_rect.cpp
 - srv/traj_reset.srv - Service for resetting turtle's position
-
 
 ### Design 
 

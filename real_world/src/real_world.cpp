@@ -1,25 +1,24 @@
-
 // Created by ricojia on 1/28/20.
 ///\file
 
-/// \brief This node is composed of two parts: FakeLaserScan and RealWorld
+/// \brief This node is composed of two parts: a laser scan simulator, and a "real world" environment for robot pose calculation.The reason for that is to reduce the delay caused by
+/// publishing and subscribing to the real pose of the robot
 /// FakeLaserScan simulates the endpoints of 360 laser beams.
-/// RealWorldsimulates the real world pose of a diff drive robot, after adding noise to the wheels for slippage simulation. The node also determines the encoder
+/// RealWorld simulates the real world pose of a diff drive robot, after adding noise to the wheels for slippage simulation. The node also determines the encoder
 /// values of wheels, which will have a drift.
 /// The real_world listens to only the velocity info from Fake Encoders, then it keeps track of the robot's wheel position using that information
 /// Also, the real world will set the robot's initial position to (0, 0,0)
-
-/// PARAMETERS:
+/// \param
 ///    dd: DiffDrive object
 ///    wheel_base - distance between the two wheels
 ///    wheel_radius - radius of each wheel
 ///    frequency - The frequency of the control loop
-/// PUBLISHES:  (after receiving subscribed topic updates)
+/// \PUBLISHES:  (after receiving subscribed topic updates)
 ///    map (nav_msgs/Odometry): odometry message containing the real pose info of the robot in the map frame
 ///    fakeScan(sensor_msgs/LaserScan): laser scan message containing the range information of each laser beam.
-/// BROADCASTS:
+/// \BROADCASTS:
 ///    tf/transform_broadcaster: transform for Rviz
-/// SUBSCRIBES:
+/// \SUBSCRIBES:
 ///   joint_states_pure (/sensor_msgs/JointState): topic to publish joint states on Rviz
 
 #include <ros/ros.h>
@@ -38,21 +37,33 @@
 #include <angles/angles.h>
 #include <algorithm>
 #include <bits/stdc++.h>
+#include <ros/time.h>
+#include <sensor_msgs/JointState.h>
+#include "rigid2d/diff_drive.hpp"
+#include <random>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
 
+using std::string;
 using rigid2d::Transform2D;
 using rigid2d::Vector2D;
 using rigid2d::Twist2D;
-
-nav_msgs::Odometry GLOBAL_MAP_ODOM_MSG;
-
 constexpr double PI = 3.14159265;
 constexpr char FRAME_ID[] = "base_link";
 
-//Helper functions:
+nav_msgs::Odometry GLOBAL_MAP_ODOM_MSG;
+
+
+///\brief Helper function as a predicate for sorting vertices of a polygon, based on their y coordinates
+///\param Two arbitrary vertices (Vector2D)
+///\return true if the first vertex has a larger y coordinate than the second
 bool compare_y (const Vector2D& a, const Vector2D& b){
     return a.y<b.y;
 }
 
+///\brief Helper function as a predicate for partitioning a vector of vertices into two parts: vertices with positive y coordinates and with negative y coordinates
+///\param Arbitrary vertex a (Vector2D)
+///\return true if the vertex's y coordinate is greater than 0.
 bool find_positive_y(const Vector2D& a){
     return a.y > 0;
 }
@@ -86,13 +97,14 @@ public:
         vertex_frames[2] = (T_center*Transform2D(Vector2D( 1*d_half,  1*w_half), PI));
         vertex_frames[3]= (T_center*Transform2D(Vector2D(-1*d_half,  1*w_half), 3.0*PI/2.0));
     }
-    ///\brief Checks if a laser beam will hit part of the rectangle. If so, it will return the scan distance. Otherwise, it will return the scan_max
-    ///\param scanner_trans (Transform2D): world frame pose of the scanner
-    ///\param endpoint_trans (Transform2D): world frame pose of the laserbeam
-    ///\param scan_max (double): maximum scan range
-    /// \return scan distance
-//    double get_rect_scan_distance(const Transform2D& scanner_trans, const Transform2D& endpoint_trans, const double& scan_max);
+
+///\brief Checks if a laser beam will hit part of the rectangle. If so, it will return the scan distance. Otherwise, it will return the scan_max
+///\param scanner_trans (Transform2D): world frame pose of the scanner
+///\param endpoint_trans (Transform2D): world frame pose of the laserbeam
+///\param scan_max (double): maximum scan range
+/// \return scan distance
     double get_rect_scan_distance(const Transform2D& scanner_trans, const double& scan_max);
+
 private:
     Transform2D vertex_frames[4];
 };
@@ -192,6 +204,9 @@ private:
 
 
     ///\brief update the range and bearing of a landmark relative to the laser scanner. The bearing is [0, 2*pi)
+    ///\param range(double): range of a landmark relative to the laser scanner (to be updated) in meter
+    ///\param bearing(double): bearing of a landmark relative to the laser scanner (to be updated) in rad
+    ///\param i (unsigned int): index of a circular landmark in circular_obstacles_x;
     void update_range_and_heading (double& range, double& bearing, unsigned int i);
 
 
@@ -199,18 +214,25 @@ private:
     void map_sub_callback();
 
     /// \brief populate the scan vector for each angle with val
+    /// \param scan (sensor_msgs::LaserScan): empty LaserScan message to be published
+    /// \param: val(double): value to populate all beams of the laser scanner with
     void populate_scan_range(sensor_msgs::LaserScan& scan, double val);
 
     ///\brief update the angle of occupancy (largest angle of view of the obstacle in laser scan), based on the range of the landmark relative to the obstacle
     /// the angle_of_occupancy will be updated to [0, pi]
-    double update_angle_of_occupancy(double angle_of_occupancy, double range);
+    ///\param range(double) maximum scan range of Lidar
+    ///\return angle of occupancy of a rectangular object in Lidar's view of range
+    double update_angle_of_occupancy(double range);
 
     ///\brief, given the range of obstacle relative to the laser scanner, and the angle of the laser scan, relative to the line connecting the center of a cylindrical obstacle and the laser scanner, we can compute the distance between
     /// the outerior of the circular obstacle and the center of laser scanner.
-    /// \return scan distance at total_angle_increment
+    ///\param total_angle_increment(double): angle between a certain beam and line connecting landmark center and the laser scanner center
+    ///\param range(double): range of a landmark relative to the laser scanner center
+    ///\return scan distance at total_angle_increment
     double get_scan_distance(double total_angle_increment, double range);
 
     ///\brief Calculate the index of a scan angle in the scanner_array, given the angle and angle_increment. Scanner_array[0] should be 0 rad, and its last element should be 2*PI.
+    /// \param angle(double): angle of a laser beam, relative to the positive x axis of the robot's body frame
     ///\return index of the scan angle.
     inline int angle_to_index(double angle, double angle_increment);
 
@@ -224,7 +246,6 @@ void FakeLaserScan::pub_scan_msgs(){
 
     map_sub_callback();
     ros::Time scan_time = ros::Time::now();
-    //populate the LaserScan message
     sensor_msgs::LaserScan scan;
     scan.header.stamp = scan_time;
     scan.header.frame_id = FRAME_ID;
@@ -261,7 +282,7 @@ void FakeLaserScan::pub_scan_msgs(){
             }
             else{
                 double angle_of_occupancy;
-                angle_of_occupancy = update_angle_of_occupancy(angle_of_occupancy, range);
+                angle_of_occupancy = update_angle_of_occupancy(range);
                 double total_angle_increment = 0;
                 while (angle_of_occupancy > total_angle_increment){
                     double scan_distance = get_scan_distance(total_angle_increment, range);
@@ -283,7 +304,6 @@ int FakeLaserScan::get_pub_frequency(){
 }
 
 void FakeLaserScan::map_sub_callback(){
-    //test
     const nav_msgs::Odometry& odom_msg = GLOBAL_MAP_ODOM_MSG;
     double x_sb = odom_msg.pose.pose.position.x;
     double y_sb = odom_msg.pose.pose.position.y;
@@ -300,7 +320,6 @@ void FakeLaserScan::map_sub_callback(){
     T_bs = T_sb.inv();
 }
 
-/// \brief get range and heading of each landmark to the robot
 void  FakeLaserScan::update_range_and_heading (double& range, double& bearing, unsigned int i){
     Vector2D p_s(circular_obstacles_x[i], circular_obstacles_y[i]);
     auto p_b = T_bs(p_s);
@@ -315,8 +334,8 @@ void FakeLaserScan::populate_scan_range(sensor_msgs::LaserScan& scan, double val
     }
 }
 
-double FakeLaserScan::update_angle_of_occupancy(double angle_of_occupancy, double range){
-    angle_of_occupancy = angles::normalize_angle_positive( asin(circular_obstacle_radius/range) );
+double FakeLaserScan::update_angle_of_occupancy(double range){
+    double angle_of_occupancy = angles::normalize_angle_positive( asin(circular_obstacle_radius/range) );
     return angle_of_occupancy;
 }
 
@@ -338,28 +357,16 @@ Transform2D FakeLaserScan::get_endpoint_transform(double theta){
     auto Tsp = (T_bs.inv())*Tbp;
     return Tsp;
 }
+
+
 //----------------------------------------------------------------------------------------------
 
 
-#include <ros/ros.h>
-#include <ros/time.h>
-#include <nav_msgs/Odometry.h>
-#include <tf/transform_broadcaster.h>
-#include <sensor_msgs/JointState.h>
-#include <string>
-#include <geometry_msgs/Quaternion.h>
-#include <geometry_msgs/TransformStamped.h>
-#include "rigid2d/diff_drive.hpp"
-#include <random>
-
-#include <tf/transform_listener.h>
-#include <tf/transform_datatypes.h>
-
-
-using std::string;
 using namespace rigid2d;
 
-
+///\brief This is the node for simulating the following items in the "real world" with specified Gaussian noise:
+/// - right and left wheel velocities of a differential drive robot
+/// - transform between the /map and /odom frame
 class RealWorld{
 public:
     /// \brief Default constructor
@@ -388,13 +395,22 @@ private:
     /// \brief Callback function for receiving joint_state msg.
     /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
     void sub_callback(const sensor_msgs::JointState& msg);
-//
-    /// \brief constructing a map_odom message,  based on pose and body twist
+
+    /// \brief constructing a tf message for transforming robot's pose in /map to /odom frame, based on pose and body twist
     /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
+    /// \param tf message (geometry_msgs::TransformStamped)
     geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
 
-    nav_msgs::Odometry construct_map_odom_msg(const rigid2d::Twist2D&, const rigid2d::Twist2D&);
+    ///\brief constructing an odom message to represent odometry of the robot in /map frame
+    ///\param pose(Twist2D): robot pose
+    ///\param velocity twist (Twist2D): Body twist of the robot after the last update.
+    ///\return odom message for pose of the robot(nav_msgs::Odometry)
+    nav_msgs::Odometry construct_map_odom_msg(const rigid2d::Twist2D& pose, const rigid2d::Twist2D& velocity_twist);
 
+    ///\brief constructing a joint state message to represent wheel positions and wheel velocities
+    ///\param wheel_pos(rigid2d::WheelPos) left and right wheel positions
+    ///\param wheel_vel(rigid2d::WheelVel) left and right wheel velocities
+    ///\return joint state message for left and right wheels (sensor_msgs::JointState)
     sensor_msgs::JointState construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel);
 };
 
@@ -460,7 +476,6 @@ nav_msgs::Odometry RealWorld::construct_map_odom_msg(const rigid2d::Twist2D& pos
 }
 
 
-/// \brief constructing a joint state message, based on the current wheel position(updated by wheel_vel), and wheel velocity
 sensor_msgs::JointState RealWorld::construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel){
     sensor_msgs::JointState joint_state_msg;
     joint_state_msg.header.stamp = ros::Time::now();

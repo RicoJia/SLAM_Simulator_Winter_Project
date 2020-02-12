@@ -143,7 +143,6 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(turtle_rect src/turtle_rect.cpp)
 add_executable(TurtleWay src/turtle_way.cpp)
 
 ## Rename C++ executable without prefix
@@ -158,10 +157,9 @@ add_executable(TurtleWay src/turtle_way.cpp)
 
 ## Specify libraries to link a library or executable target against
 #Qustion??
-target_link_libraries(
-         turtle_rect
-   ${catkin_LIBRARIES}
- )
+#target_link_libraries(
+#   ${catkin_LIBRARIES}
+# )
 
 target_link_libraries(
         TurtleWay
@@ -179,7 +177,6 @@ target_link_libraries(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
-   src/turtle_rect.cpp
         src/turtle_way.cpp
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
@@ -187,7 +184,7 @@ install(PROGRAMS
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS TurtleWay  turtle_rect
+install(TARGETS TurtleWay
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
@@ -202,7 +199,8 @@ install(FILES
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
-install(TARGETS turtle_rect TurtleWay
+install(TARGETS
+        TurtleWay
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

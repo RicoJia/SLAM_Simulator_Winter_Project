@@ -1,6 +1,5 @@
-# ME495 - rigid2d library
+# Rigid2d Library
 
-differential drive robot 
 This project is a simulated environment for SLAM algorithms. At the current stage of development, there is a kinematics model for
 differential drive robot. 
 
@@ -22,6 +21,7 @@ differential drive robot.
 - If you have a differential drive robot and your control package publishes a turtlesim/Twist message, you can use fake_diff_encoders and odometer to visualize your result on rviz  
 1. Adjust robot and visualization parameters in config/params.yaml
 2. Write a launchfile called visualize_diff_drive.launch, add your node 
+
 ```
 <launch>
 
