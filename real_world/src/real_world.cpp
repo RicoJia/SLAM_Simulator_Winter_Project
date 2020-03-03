@@ -16,6 +16,7 @@
 /// \PUBLISHES:  (after receiving subscribed topic updates)
 ///    map (nav_msgs/Odometry): odometry message containing the real pose info of the robot in the map frame
 ///    fakeScan(sensor_msgs/LaserScan): laser scan message containing the range information of each laser beam.
+///    joint_states (sensor_msgs/JointStates): real world
 /// \BROADCASTS:
 ///    tf/transform_broadcaster: transform for Rviz
 /// \SUBSCRIBES:

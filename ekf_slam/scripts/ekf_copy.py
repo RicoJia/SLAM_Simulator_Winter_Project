@@ -31,12 +31,6 @@ def initialize_fk(landmark_num):
     return F_k
 
 
-
-SIGMA_V = 1.0
-SIGMA_W = 0.01
-SIGMA_RANGE = 0.1
-TOTAL_STEP_NUM = 1000
-
 class ekf_object():
 
     def __init__(self, x = 0.0, y = 0.0, theta = 0.0, landmark_num = 1, delta_t=0.01):
@@ -50,7 +44,7 @@ class ekf_object():
         #delta_t: time step
         self.delta_t = delta_t
         #measurement covariance matrix (range, bearing)
-        self.Q = np.array([[SIGMA_RANGE**2, 0.0],
+        self.Q = np.array([[0.01, 0.0],
                            [0.0, 0]])
 
     def motion_predict(self, u_t):
@@ -80,8 +74,8 @@ class ekf_object():
         # M_t = np.array([[alphas[0]*abs(v_t)**2 + alphas[1]*abs(w_t)**2, 0],
         #                 [0, alphas[2]*abs(v_t)**2 + alphas[3]*abs(w_t)**2 ]])
 
-        M_t = np.array([[SIGMA_V**2, 0],
-                        [0, SIGMA_W**2]])
+        M_t = np.array([[0.1, 0],
+                        [0, 0.01]])
 
         V_t = np.array([[np.cos(theta + halfRot), -0.5 * np.sin(theta + halfRot)],
                         [np.sin(theta + halfRot), 0.5 * np.cos(theta + halfRot)],
@@ -161,6 +155,9 @@ class ekf_object():
 #z_t = array of [range, bearing, id]
 #ground_truth: n x 3 [x,y,theta]
 #self.delta_t
+SIGMA_V = 0.1
+SIGMA_W = 0.01
+TOTAL_STEP_NUM = 1000
 
 def init_tables(delta_t = 0.01):
     #assume we have v = (1,0,0), robot starts from 0,0,0, and there is a wall at (100,0,0). Everything is in [x,y,theta]
@@ -183,7 +180,7 @@ def init_tables(delta_t = 0.01):
         u_t = np.array([v,w])
         u_t_arr = np.append(u_t_arr, u_t.reshape(1,2), axis=0)
 
-        miu_range, sigma_range = wall_position[0] - step_num * delta_t * miu_v, SIGMA_RANGE
+        miu_range, sigma_range = wall_position[0] - step_num * delta_t * miu_v, 0.01
         _range = np.random.normal(miu_range, sigma_range)
         z_t = np.array([_range, 0.0, 0])
         z_t_arr = np.append(z_t_arr, z_t.reshape(1,3), axis=0)
@@ -215,18 +212,18 @@ class test_ekf_filter_2D():
         for i in range(time_arr.shape[0]):
             self.ekf_obj.filter(self.u_t_arr[i], z_t_arr[i].reshape(1,3))   #z_t_i must be in the form [zt1],[zt2]
             self. ekf_path = np.append(self.ekf_path, (self.ekf_obj.miu[:3,0]).reshape(1,3), axis=0)
-            print("sigma_arr: ", self.ekf_obj.sigma.diagonal())
+
             sigma_arr[0,i] = self.ekf_obj.sigma[0,0]
             sigma_arr[1,i] = self.ekf_obj.sigma[1,1]
             sigma_arr[2,i] = self.ekf_obj.sigma[2,2]
 
-        # plot sigmas
-        plt.plot(time_arr, sigma_arr[0,:],color='blue')
-        plt.plot(time_arr, sigma_arr[1,:],color='green')
-        plt.plot(time_arr, sigma_arr[2,:],color='red')
-        plt.legend(("x covariance", "y covariance", "theta covariance"), loc="lower right")
-        plt.title("covariance of states")
-        plt.show()
+        #plot sigmas
+        # plt.plot(time_arr, sigma_arr[0,:],color='blue')
+        # plt.plot(time_arr, sigma_arr[1,:],color='green')
+        # plt.plot(time_arr, sigma_arr[2,:],color='red')
+        # plt.legend(("x covariance", "y covariance", "theta covariance"), loc="lower right")
+        # plt.title("covariance of states")
+        # plt.show()
 
 
         # #visualizing 1d
@@ -268,7 +265,7 @@ class test_ekf_filter_2D():
 
     def plot_error_covariance(self):
         #plot the distruibution of x and theta values of 200 runs, and see if the gaussian fits the distribution
-        run_num = 30
+        run_num = 500
         x_arr = np.zeros(run_num)
         theta_arr = np.zeros(run_num)
 
@@ -281,34 +278,46 @@ class test_ekf_filter_2D():
                     x_arr[run] = self.ekf_obj.miu[0,0]
                     theta_arr[run] = self.ekf_obj.miu[2,0]
 
+
         print("x_arr: ", x_arr)
         print("theta_arr: ", theta_arr)
-        print("x_arr cov: ", np.std(x_arr))
-        print("theta_arr cov: ", np.std(theta_arr))
+        print("x_arr cov: ", np.std(x_arr)**0.5)
+        print("theta_arr cov: ", np.std(theta_arr)**0.5)
 
+       #  x_arr = np.array([ 9.99651536,  9.99087161,  9.99759248,  9.99516091,  9.98566024,
+       #  9.99872491, 10.0033586 ,  9.99393246,  9.997236  ,  9.99446097,
+       #  9.98789731, 10.00274606,  9.99628657,  9.99441085,  9.99609312,
+       # 10.00792441,  9.99041986,  9.97873636,  9.99343802,  9.99228972,
+       #  9.99322758,  9.99374243, 10.00755128, 10.0076231 ,  9.99974754,
+       #  9.99703613,  9.99651044,  9.97801773,  9.99780603,  9.99457636,
+       # 10.01919724,  9.98881913,  9.99906985,  9.99800128,  9.9916624 ,
+       #  9.98737152,  9.98844384,  9.99471156, 10.0000361 , 10.00401391,
+       #  9.9917604 , 10.00066652,  9.98585665,  9.99546196,  9.99240991,
+       #  9.98270865,  9.98553443,  9.99035255,  9.99472799,  9.99635437])
 
-        plt.figure(1)
-        actual_mean_x = TOTAL_STEP_NUM*0.01*1.0
-        cov_x = SIGMA_V
-        xx = np.arange(actual_mean_x-SIGMA_V*1.0, actual_mean_x+SIGMA_V*1.0, 0.001)
-        y_pdf_x = stats.norm.pdf(xx, loc=actual_mean_x, scale=SIGMA_V)
-        plt.plot(xx, y_pdf_x)
-        mu, std = stats.norm.fit(x_arr)
-        p = stats.norm.pdf(xx, mu, std)
-        print("std of x_arr: ", std, "std of V: ", SIGMA_V)
-        plt.plot(xx, p, 'k', linewidth=2)
-        plt.title("x distribution. Number of runs: " + str(run_num))
+        # plt.figure(1)
+        # actual_mean_x = TOTAL_STEP_NUM*0.01*1.0
+        # actual_mean_theta = 0.0
+        # cov_x = SIGMA_V
+        # cov_theta = SIGMA_W
+        # xx = np.arange(actual_mean_x-SIGMA_V*1.0, actual_mean_x+SIGMA_V*1.0, 0.001)
+        # xtheta = np.arange(actual_mean_theta-SIGMA_W*4.0, actual_mean_theta+SIGMA_W*4.0, 0.001)
+        # y_pdf_x = stats.norm.pdf(xx, loc=actual_mean_x, scale=np.sqrt(SIGMA_V))
+        # y_pdf_theta = stats.norm.pdf(xtheta, loc=actual_mean_theta, scale=np.sqrt(SIGMA_W))
+        # plt.plot(xx, y_pdf_x)
+        #
+        # mu, std = stats.norm.fit(x_arr)
+        # p = stats.norm.pdf(xx, mu, std)
+        # plt.plot(xx, p, 'k', linewidth=2)
+        # plt.title("x distribution. Number of runs: " + str(run_num))
 
 
 
 
         #
         # plt.figure(2)
-        # cov_theta = SIGMA_W
-        # actual_mean_theta = 0.0
-        # xtheta = np.arange(actual_mean_theta-SIGMA_W*4.0, actual_mean_theta+SIGMA_W*4.0, 0.001)
-        # y_pdf_theta = stats.norm.pdf(xtheta, loc=actual_mean_theta, scale=np.sqrt(SIGMA_W))
         # plt.plot(xtheta, y_pdf_theta)
+        # sns.distplot(theta_arr, hist = False, kde = True, kde_kws = {'linewidth': 1},label="theta_array")
         # plt.title("theta distribution. Number of runs: " + str(run_num))
         plt.show()
 
@@ -324,6 +333,6 @@ if __name__== '__main__':
     # # print(" mean: ", ekf.miu)
 
     test = test_ekf_filter_2D()
-    test.run_ekf()
-    test.plot_ekf_ground_truth()
-    # test.plot_error_covariance()
+    # test.run_ekf()
+    # test.plot_ekf_ground_truth()
+    test.plot_error_covariance()
