@@ -80,7 +80,7 @@ Odometer::Odometer(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive()
 
     odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
     current_time = ros::Time::now();
-    sub = nh.subscribe("/joint_states_odom", 10, &Odometer::sub_callback, this);
+    sub = nh.subscribe("/joint_states_odom", 10, &Odometer::sub_callback, this);    //TODO
 
     auto init_pose = Twist2D();  //default pose
     diff_drive = DiffDrive(init_pose, wheel_base, wheel_radius);

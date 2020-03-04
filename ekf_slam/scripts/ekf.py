@@ -53,8 +53,10 @@ class ekf_object():
         self.Q = np.array([[SIGMA_RANGE**2, 0.0],
                            [0.0, 0]])
 
-    def motion_predict(self, u_t):
+    def motion_predict(self, u_t, delta_t = None):
         # alphas: motion covariance weights.
+        if delta_t != None:
+            self.delta_t = delta_t
 
         alphas = np.array([1, 0, 0, 1])
         theta = self.miu[2,0]
@@ -156,15 +158,17 @@ class ekf_object():
         self.measurement_update(z_t)
 
 
-#delta_t
-#u_t: [v, w]
-#z_t = array of [range, bearing, id]
-#ground_truth: n x 3 [x,y,theta]
-#self.delta_t
 
+# Initialize test data
+# Args:
+#     delta_t: time from the last update
 def init_tables(delta_t = 0.01):
     #assume we have v = (1,0,0), robot starts from 0,0,0, and there is a wall at (100,0,0). Everything is in [x,y,theta]
     #Gaussian noise is here.
+    #u_t: [v, w]
+    #z_t = array of [range, bearing, id]
+    #ground_truth: n x 3 [x,y,theta]
+
     wall_position = np.array([100.0, 1.5])
 
     time_arr = np.linspace(0, (TOTAL_STEP_NUM-1)*delta_t, num = TOTAL_STEP_NUM)
@@ -198,7 +202,6 @@ def init_tables(delta_t = 0.01):
 
 
 import scipy.stats as stats
-import seaborn as sns
 
 class test_ekf_filter_2D():
     def __init__(self):

@@ -64,6 +64,10 @@
   <build_export_depend>tf</build_export_depend>
   <exec_depend>tf</exec_depend>
 
+  <build_depend>tf2_ros</build_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
   <build_depend>angles</build_depend>
   <build_export_depend>angles</build_export_depend>
   <exec_depend>angles</exec_depend>
@@ -77,6 +81,9 @@
   <exec_depend>  nav_msgs</exec_depend>
 
   <build_depend>rigid2d</build_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

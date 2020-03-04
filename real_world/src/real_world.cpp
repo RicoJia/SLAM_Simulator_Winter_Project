@@ -4,10 +4,10 @@
 /// \brief This node is composed of two parts: a laser scan simulator, and a "real world" environment for robot pose calculation.The reason for that is to reduce the delay caused by
 /// publishing and subscribing to the real pose of the robot
 /// FakeLaserScan simulates the endpoints of 360 laser beams.
-/// RealWorld simulates the real world pose of a diff drive robot, after adding noise to the wheels for slippage simulation. The node also determines the encoder
-/// values of wheels, which will have a drift.
+/// RealWorld simulates the real world pose of a diff drive robot, after adding noise to the wheels for slippage simulation, which is from Gaussian noise on the commanded twist.
 /// The real_world listens to only the velocity info from Fake Encoders, then it keeps track of the robot's wheel position using that information
 /// Also, the real world will set the robot's initial position to (0, 0,0)
+
 /// \param
 ///    dd: DiffDrive object
 ///    wheel_base - distance between the two wheels
@@ -42,15 +42,21 @@
 #include <sensor_msgs/JointState.h>
 #include "rigid2d/diff_drive.hpp"
 #include <random>
-#include <tf/transform_listener.h>
-#include <tf/transform_datatypes.h>
+#include <tf2_ros/static_transform_broadcaster.h>
+#include "real_world/LandmarkList.h"
+
 
 using std::string;
 using rigid2d::Transform2D;
 using rigid2d::Vector2D;
 using rigid2d::Twist2D;
+using rigid2d::distance;
+using rigid2d::angle;
 constexpr double PI = 3.14159265;
 constexpr char FRAME_ID[] = "base_link";
+
+
+//----------------------------------------------------------------------------------------------Fake Laser Scan
 
 nav_msgs::Odometry GLOBAL_MAP_ODOM_MSG;
 
@@ -359,123 +365,216 @@ Transform2D FakeLaserScan::get_endpoint_transform(double theta){
     return Tsp;
 }
 
-
-//----------------------------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------------------REAL WORLD
 
 using namespace rigid2d;
 
 ///\brief This is the node for simulating the following items in the "real world" with specified Gaussian noise:
-/// - right and left wheel velocities of a differential drive robot
+/// - commanded twist and converted to right and left wheel velocities of a differential drive robot
 /// - transform between the /map and /odom frame
+/// Covariance of control input and observation is assumed to be a diagonal matrix.
+
+/// \PUBLISH:
+///     /joint_states   (sensor_msgs/JointStates) - the real world wheel states of the robot
+///     /landmark_location?
+
+/// \BROADCAST:
+///     world_map  - Static Identity TF transform
+///     world_actual_robot (nav_msgs/Odometry) - Transform between world frame and the actual robot frame. Actual Robot frame is the frame which shows the "real world" pose of the robot.
+
 class RealWorld{
 public:
-    /// \brief Default constructor
+/// \brief Default constructor
     RealWorld();
-    /// \brief constructor
+/// \brief constructor
     explicit RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2);
+
+    /// \brief sending transform between the world frame and the actual robot pose
+    void send_world_actual_robot_tf();
+
+    /// \brief publishing joint state msgs
+    void pub_wheel_joint_states();
+
+    /// \brief publishing landmark info
+    void pub_landmark_list();
 
 private:
     double wheel_base, wheel_radius;
     int frequency;
     ros::Subscriber sub;
-    ros::Publisher map_odom_pub;
-    ros::Publisher joint_state_odom_pub;
     ros::Publisher joint_state_pub;
-    tf::TransformBroadcaster map_odom_broadcaster;
+    ros::Publisher landmark_list_pub;
+    tf2_ros::StaticTransformBroadcaster static_world_map_broadcaster;
+    tf::TransformBroadcaster world_actual_robot_broadcaster;
     tf::TransformListener listener;
     ros::Time current_time;
 
     string map_frame_id;
     string odom_frame_id;
+    string world_frame_id;
+    string actual_robot_frame_id;
     string left_wheel_joint;
     string right_wheel_joint;
     rigid2d::DiffDrive diff_drive;
-    double slip_miu, odom_miu, odom_drift;
 
-    /// \brief Callback function for receiving joint_state msg.
-    /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
+    std::vector<double> miu_vel, stddev_vel, miu_z, stddev_z;
+    std::vector<double> circular_obstacles_x, circular_obstacles_y;
+    double circular_obstacle_radius;
+
+    unsigned int landmark_num;
+
+    WheelPos wheel_pos;
+    WheelVel wheel_vel;
+
+/// \brief Callback function for receiving joint_state msg.
+/// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
     void sub_callback(const sensor_msgs::JointState& msg);
 
-    /// \brief constructing a tf message for transforming robot's pose in /map to /odom frame, based on pose and body twist
-    /// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
-    /// \param tf message (geometry_msgs::TransformStamped)
-    geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&);
+/// \brief constructing a tf message for transforming robot's pose in /map to /odom frame, based on pose and body twist
+/// \param sensor_msgs::JointState&  joint state messages for left and right wheel velocities
+/// \param tf message (geometry_msgs::TransformStamped)
+    geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&, const std::string& frame_id, const std::string& child_frame_id );
 
-    ///\brief constructing an odom message to represent odometry of the robot in /map frame
-    ///\param pose(Twist2D): robot pose
-    ///\param velocity twist (Twist2D): Body twist of the robot after the last update.
-    ///\return odom message for pose of the robot(nav_msgs::Odometry)
-    nav_msgs::Odometry construct_map_odom_msg(const rigid2d::Twist2D& pose, const rigid2d::Twist2D& velocity_twist);
 
-    ///\brief constructing a joint state message to represent wheel positions and wheel velocities
-    ///\param wheel_pos(rigid2d::WheelPos) left and right wheel positions
-    ///\param wheel_vel(rigid2d::WheelVel) left and right wheel velocities
-    ///\return joint state message for left and right wheels (sensor_msgs::JointState)
+///\brief constructing a joint state message to represent wheel positions and wheel velocities
+///\param wheel_pos(rigid2d::WheelPos) left and right wheel positions
+///\param wheel_vel(rigid2d::WheelVel) left and right wheel velocities
+///\return joint state message for left and right wheels (sensor_msgs::JointState)
     sensor_msgs::JointState construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel);
 };
 
-WheelPos get_new_wheel_pos(WheelPos original_wheel_pos, const WheelVel& noisy_wheel_vel){
-    original_wheel_pos.theta_l += noisy_wheel_vel.u_l;
-    original_wheel_pos.theta_r += noisy_wheel_vel.u_r ;
-    return original_wheel_pos;
-}
-
-WheelVel add_noise(double u_l, double u_r, double mean, double miu){
+double add_noise(double var, double mean, double stddev){
     std::default_random_engine generator;
-    std::normal_distribution<double> distribution(mean,miu);
-    double _u_l = u_l+ distribution(generator);
-    double _u_r = u_r + distribution(generator);
-    return  WheelVel(_u_l, _u_r);
+    std::normal_distribution<double> distribution(mean,stddev);
+    double _var = var + distribution(generator);
 }
 
 RealWorld::RealWorld(){}
-RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive()
+RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wheel_vel(), wheel_pos()
 {
     nh.getParam("/RealWorld/wheel_base", wheel_base);
     nh.getParam("/RealWorld/wheel_radius", wheel_radius);
     nh.getParam("/RealWorld/frequency", frequency);
 
     nh2.getParam("odom_frame_id", odom_frame_id);
+    nh2.getParam("map_frame_id",map_frame_id);
+    nh2.getParam("world_frame_id",world_frame_id);
+    nh2.getParam("actual_robot_frame_id",actual_robot_frame_id);
+
     nh2.getParam("right_wheel_joint", right_wheel_joint);
     nh2.getParam("left_wheel_joint",left_wheel_joint);
-    nh2.getParam("map_frame_id",map_frame_id);
 
-    nh2.getParam("slip_miu",slip_miu);
-    nh2.getParam("odom_miu",odom_miu);
-    nh2.getParam("odom_drift",odom_drift);
+    nh2.getParam("miu_vel", miu_vel);
+    nh2.getParam("stddev_vel", stddev_vel);
+    nh2.getParam("miu_z", miu_z);
+    nh2.getParam("stddev_z", stddev_z);
+    nh2.getParam("circular_obstacles_x", circular_obstacles_x);
+    nh2.getParam("circular_obstacles_y", circular_obstacles_y);
+    nh2.getParam("circular_obstacle_radius", circular_obstacle_radius);
 
-    map_odom_pub = nh.advertise<nav_msgs::Odometry>("map_odom", 50);
-    joint_state_odom_pub = nh.advertise<sensor_msgs::JointState>("joint_states_odom", 50);
+    // check if miu, stddev arrays are of the same size.
+    if ( miu_vel.size()!=stddev_vel.size() ){
+        ROS_FATAL("The size of mean and stddevariance arrays of control input do not match!");
+    }
+    if ( miu_z.size()!=stddev_z.size() ){
+        ROS_FATAL("The size of mean and stddevariance arrays of observation do not match!");
+    }
+
+    landmark_num = miu_z.size();
+
     joint_state_pub = nh.advertise<sensor_msgs::JointState>("joint_states", 50);
+    landmark_list_pub = nh.advertise<real_world::LandmarkList>("landmarks", 50);
     current_time = ros::Time::now();
     sub = nh.subscribe("/joint_states_pure", 10, &RealWorld::sub_callback, this);
     auto init_pose = Twist2D();  //default pose
     diff_drive = DiffDrive(init_pose, wheel_base, wheel_radius);
+
+    //send static transform from /world to /map
+    geometry_msgs::TransformStamped static_tf_msg = construct_tf(Twist2D(0.0, 0.0, 0.0), world_frame_id, map_frame_id);
+    static_world_map_broadcaster.sendTransform(static_tf_msg);
 }
 
 
+void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
 
-nav_msgs::Odometry RealWorld::construct_map_odom_msg(const rigid2d::Twist2D& pose_twist,const rigid2d::Twist2D& velocity_twist ){
-    nav_msgs::Odometry odom_msg;
-    auto current_time = ros::Time::now();
-    odom_msg.header.stamp = current_time;
-    odom_msg.header.frame_id = map_frame_id;
-    odom_msg.child_frame_id = odom_frame_id;
+    auto left_iterator = std::find(msg.name.begin(),msg.name.end(), left_wheel_joint);
+    int left_index = std::distance(msg.name.begin(), left_iterator);
+    auto right_iterator = std::find(msg.name.begin(),msg.name.end(), right_wheel_joint);
+    int right_index = std::distance(msg.name.begin(), right_iterator);
 
-    odom_msg.pose.pose.position.x = pose_twist.x;
-    odom_msg.pose.pose.position.y = pose_twist.y;
-    odom_msg.pose.pose.position.z = 0.0;
+    // Adding noise to wheel veloctity, for the real world itself and for the odometer.
+    auto noiseless_twist = diff_drive.wheelsToTwist(WheelVel(msg.velocity[left_index], msg.velocity[right_index]));
+    double noisy_angular_vel = add_noise(noiseless_twist.theta, miu_vel[0], stddev_vel[0]);
+    double noisy_linear_vel = add_noise(noiseless_twist.x, miu_vel[1], stddev_vel[1]);
+//    auto noisy_twist = Twist2D(noiseless_twist.theta + noisy_angular_vel, noiseless_twist.x + noisy_linear_vel, noiseless_twist.y);
+    auto noisy_twist = Twist2D(noisy_angular_vel, noisy_linear_vel, noiseless_twist.y);
+    diff_drive.feedforward(noisy_twist);
 
-    geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(pose_twist.theta);
-    odom_msg.pose.pose.orientation = odom_quat;
-
-    odom_msg.twist.twist.linear.x = velocity_twist.x;
-    odom_msg.twist.twist.linear.y = velocity_twist.y;
-    odom_msg.twist.twist.angular.z = velocity_twist.theta;
-    return odom_msg;
+    //update wheel_pos and wheel_vel
+    wheel_vel = diff_drive.twistToWheels(noisy_twist);
+    diff_drive.update_wheel_pos(wheel_vel);
+    wheel_pos = diff_drive.wheelPositions();
 }
 
+void RealWorld::send_world_actual_robot_tf() {
+    geometry_msgs::TransformStamped world_actual_robot_trans = construct_tf(diff_drive.get_pose(), world_frame_id, actual_robot_frame_id);
+    world_actual_robot_broadcaster.sendTransform(world_actual_robot_trans);
+}
+
+
+geometry_msgs::TransformStamped RealWorld::construct_tf(const rigid2d::Twist2D& pose_twist, const std::string& frame_id, const std::string& child_frame_id )
+{
+    geometry_msgs::TransformStamped trans;
+    tf::StampedTransform transform;
+    current_time = ros::Time::now();
+    trans.header.stamp = current_time;
+    trans.header.frame_id = frame_id;
+    trans.child_frame_id = child_frame_id;
+
+    trans.transform.translation.x = pose_twist.x;
+    trans.transform.translation.y = pose_twist.y;
+    trans.transform.translation.z = 0.0;
+    geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromYaw(pose_twist.theta);
+    trans.transform.rotation = quat;
+    return trans;
+}
+
+void RealWorld::pub_wheel_joint_states() {
+    sensor_msgs::JointState joint_state_msg = construct_joint_state_msg(wheel_pos,wheel_vel);
+    joint_state_pub.publish(joint_state_msg);
+}
+
+void RealWorld::pub_landmark_list() {
+    real_world::LandmarkList landmark_list;
+    auto current_pose = diff_drive.get_pose();
+    for (unsigned int i = 0; i < circular_obstacles_y.size(); ++i){
+        real_world::Landmark landmark;
+
+//        time last_update
+//        string landmark_id
+//        geometry_msgs/Point position
+//        float64[2] position_covariance
+
+        landmark.last_update = ros::Time::now();
+        landmark.landmark_id = i;
+        landmark.position_stddev[0]= stddev_z[0];
+        landmark.position_stddev[1]= stddev_z[1];
+
+        double x = circular_obstacles_x[i];
+        double y = circular_obstacles_y[i];
+        double range = distance(Vector2D(current_pose.x, current_pose.y), Vector2D(x,y));
+        double bearing = angle(Vector2D(current_pose.x - x, current_pose.y -y));
+        double noisy_range = add_noise(range, miu_z[0], stddev_z[0]);
+        double noisy_bearing = add_noise(bearing, miu_z[1], stddev_z[1]);
+        landmark.range = noisy_range;
+        landmark.bearing = noisy_bearing;
+//        position =
+        landmark_list.landmarks.push_back(landmark);
+    }
+
+    landmark_list_pub.publish(landmark_list);
+
+}
 
 sensor_msgs::JointState RealWorld::construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel){
     sensor_msgs::JointState joint_state_msg;
@@ -487,101 +586,22 @@ sensor_msgs::JointState RealWorld::construct_joint_state_msg(const rigid2d::Whee
 }
 
 
-geometry_msgs::TransformStamped RealWorld::construct_tf(const rigid2d::Twist2D& pose_twist){
-    geometry_msgs::TransformStamped odom_trans;
-    tf::StampedTransform transform;
-    current_time = ros::Time::now();
-    odom_trans.header.stamp = current_time;
-    odom_trans.header.frame_id = map_frame_id;
-    odom_trans.child_frame_id = odom_frame_id;
-
-    //calculate map to odom. if nothing is available, publish [0,0,0]
-    try{
-        listener.lookupTransform("base_link", "odom", ros::Time(0), transform);     //TODO: or reverse?
-
-        tf::Quaternion q = transform.getRotation();
-        tf::Matrix3x3 m(q);
-        double roll, pitch, yaw;
-        m.getRPY(roll, pitch, yaw);
-        double x_bo,y_bo;
-        x_bo = transform.getOrigin().x();
-        y_bo = transform.getOrigin().y();
-
-        Transform2D Tsb(Vector2D( pose_twist.x, pose_twist.y), pose_twist.theta);
-        Transform2D Tbo(Vector2D(x_bo, y_bo),yaw);
-        auto Tso = Tsb*Tbo;
-        Twist2D Xso = Tso.displacement();
-
-        odom_trans.transform.translation.x = Xso.x;
-        odom_trans.transform.translation.y = Xso.y;
-        odom_trans.transform.translation.z = 0.0;
-        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(Xso.theta);
-        odom_trans.transform.rotation = odom_quat;
-    }
-    catch (tf::TransformException &ex){
-        odom_trans.transform.translation.x = 0.0;
-        odom_trans.transform.translation.y = 0.0;
-        odom_trans.transform.translation.z = 0.0;
-        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(0.0);
-        odom_trans.transform.rotation = odom_quat;
-    }
-
-    return odom_trans;
-}
-
-
-void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
-
-    //broadcast transform here
-    auto pose_twist = diff_drive.get_pose();
-    geometry_msgs::TransformStamped map_odom_trans = construct_tf(pose_twist);
-    map_odom_broadcaster.sendTransform(map_odom_trans);
-    // update odom here
-
-    auto left_iterator = std::find(msg.name.begin(),msg.name.end(), left_wheel_joint);
-    int left_index = std::distance(msg.name.begin(), left_iterator);
-    auto right_iterator = std::find(msg.name.begin(),msg.name.end(), right_wheel_joint);
-    int right_index = std::distance(msg.name.begin(), right_iterator);
-
-    // Adding noise to wheel veloctity, for the real world itself and for the odometer.
-    auto wheel_vel_map = add_noise(msg.velocity[left_index], msg.velocity[right_index], 0, slip_miu);
-    auto wheel_vel_odometer = add_noise(wheel_vel_map.u_l, wheel_vel_map.u_r, odom_drift, odom_miu);
-
-    //Update wheel positions, based on the noisy wheel velocities
-    auto wheel_pos = diff_drive.wheelPositions();        //actual wheel_positions, after the noisy increment
-    wheel_pos = get_new_wheel_pos(wheel_pos, wheel_vel_map);    //this is not updating the diff_drive parameter. This is for update odometry only.
-
-    diff_drive.updateOdometry(wheel_pos.theta_l, wheel_pos.theta_r);    //update the real world twist of the robot.
-    diff_drive.update_wheel_pos(wheel_vel_map);
-
-    auto velocity_twist_map = diff_drive.wheelsToTwist(wheel_vel_map);
-
-    //construct odom msg and publish here, also, don't forget to add some noise in.
-    nav_msgs::Odometry map_odom_msg = construct_map_odom_msg(pose_twist,velocity_twist_map);        //TODO: Cause problem with old pose_twist?
-    map_odom_pub.publish(map_odom_msg);
-
-    // global map odom
-    GLOBAL_MAP_ODOM_MSG = map_odom_msg;
-
-    //construct joint state msgs for simulator and odometer
-    sensor_msgs::JointState joint_state_msg = construct_joint_state_msg(wheel_pos,wheel_vel_map);
-    sensor_msgs::JointState joint_state_odom_msg = construct_joint_state_msg(wheel_pos, wheel_vel_odometer);
-    joint_state_pub.publish(joint_state_msg);
-    joint_state_odom_pub.publish(joint_state_odom_msg);
-}
-
 
 int main(int argc, char**argv){
     ros::init(argc, argv, "RealWorld");
     ros::NodeHandle nh;
     ros::NodeHandle nh2("~");
     RealWorld real_world(nh,nh2);
-    FakeLaserScan laserScan(nh, nh2);
-    ros::Rate r(laserScan.get_pub_frequency());
+//    FakeLaserScan laserScan(nh, nh2);
+//    ros::Rate r(laserScan.get_pub_frequency());
+    ros::Rate r(40);
     while(nh.ok()) {
-        laserScan.pub_scan_msgs();
+        real_world.send_world_actual_robot_tf();
+        real_world.pub_wheel_joint_states();
+        real_world.pub_landmark_list();
+//        laserScan.pub_scan_msgs();
         ros::spinOnce();
-        r.sleep();
+//        r.sleep();
     }
     return 0;
 }

@@ -13,12 +13,15 @@ find_package(catkin REQUIRED COMPONENTS
         visualization_msgs
         geometry_msgs
         tf
+        tf2_ros
         angles
         nav_msgs
-
+        message_generation
         )
 
-find_package(rigid2d REQUIRED)
+find_package(rigid2d
+        
+        REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -53,11 +56,11 @@ find_package(rigid2d REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+         Landmark.msg
+         LandmarkList.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -74,10 +77,10 @@ find_package(rigid2d REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   sensor_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   geometry_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -111,9 +114,8 @@ find_package(rigid2d REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES fake_laser_scan
-  CATKIN_DEPENDS roscpp sensor_msgs visualization_msgs geometry_msgs tf angles nav_msgs
-
-        #  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp sensor_msgs visualization_msgs geometry_msgs tf tf2_ros angles nav_msgs
+       message_runtime #  DEPENDS system_lib
 )
 
 ###########
