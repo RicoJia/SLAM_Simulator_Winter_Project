@@ -20,7 +20,7 @@
 /// \BROADCASTS:
 ///    tf/transform_broadcaster: transform for Rviz
 /// \SUBSCRIBES:
-///   joint_states_pure (/sensor_msgs/JointState): topic to publish joint states on Rviz
+///   joint_states_pure (/sensor_msgs/JointState): topic to publish joint states on Rviz. Real world  calculates the actual robot pose based on the the wheel velocity.
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
@@ -382,6 +382,10 @@ using namespace rigid2d;
 ///     world_map  - Static Identity TF transform
 ///     world_actual_robot (nav_msgs/Odometry) - Transform between world frame and the actual robot frame. Actual Robot frame is the frame which shows the "real world" pose of the robot.
 
+
+
+
+
 class RealWorld{
 public:
 /// \brief Default constructor
@@ -422,6 +426,7 @@ private:
     double circular_obstacle_radius;
 
     unsigned int landmark_num;
+    const double landmark_init_time;
 
     WheelPos wheel_pos;
     WheelVel wheel_vel;
@@ -441,6 +446,7 @@ private:
 ///\param wheel_vel(rigid2d::WheelVel) left and right wheel velocities
 ///\return joint state message for left and right wheels (sensor_msgs::JointState)
     sensor_msgs::JointState construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel);
+
 };
 
 double add_noise(double var, double mean, double stddev){
@@ -449,8 +455,9 @@ double add_noise(double var, double mean, double stddev){
     double _var = var + distribution(generator);
 }
 
-RealWorld::RealWorld(){}
-RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wheel_vel(), wheel_pos()
+RealWorld::RealWorld():landmark_init_time(ros::Time::now().toSec())
+{}
+RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wheel_vel(), wheel_pos(), landmark_init_time(ros::Time::now().toSec())
 {
     nh.getParam("/RealWorld/wheel_base", wheel_base);
     nh.getParam("/RealWorld/wheel_radius", wheel_radius);
@@ -492,6 +499,8 @@ RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wh
     //send static transform from /world to /map
     geometry_msgs::TransformStamped static_tf_msg = construct_tf(Twist2D(0.0, 0.0, 0.0), world_frame_id, map_frame_id);
     static_world_map_broadcaster.sendTransform(static_tf_msg);
+
+
 }
 
 
@@ -502,7 +511,7 @@ void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
     auto right_iterator = std::find(msg.name.begin(),msg.name.end(), right_wheel_joint);
     int right_index = std::distance(msg.name.begin(), right_iterator);
 
-    // Adding noise to wheel veloctity, for the real world itself and for the odometer.
+//     Adding noise to wheel veloctity, for the real world itself and for the odometer.
     auto noiseless_twist = diff_drive.wheelsToTwist(WheelVel(msg.velocity[left_index], msg.velocity[right_index]));
     double noisy_angular_vel = add_noise(noiseless_twist.theta, miu_vel[0], stddev_vel[0]);
     double noisy_linear_vel = add_noise(noiseless_twist.x, miu_vel[1], stddev_vel[1]);
@@ -514,7 +523,9 @@ void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
     wheel_vel = diff_drive.twistToWheels(noisy_twist);
     diff_drive.update_wheel_pos(wheel_vel);
     wheel_pos = diff_drive.wheelPositions();
+
 }
+
 
 void RealWorld::send_world_actual_robot_tf() {
     geometry_msgs::TransformStamped world_actual_robot_trans = construct_tf(diff_drive.get_pose(), world_frame_id, actual_robot_frame_id);
@@ -555,7 +566,7 @@ void RealWorld::pub_landmark_list() {
 //        geometry_msgs/Point position
 //        float64[2] position_covariance
 
-        landmark.last_update = ros::Time::now();
+        landmark.last_update = ros::Time::now().toSec() - landmark_init_time;
         landmark.landmark_id = i;
         landmark.position_stddev[0]= stddev_z[0];
         landmark.position_stddev[1]= stddev_z[1];

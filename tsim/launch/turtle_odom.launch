@@ -1,15 +1,16 @@
 <!-- Purpose: launch waypoints generation node, turtlesim, differential drive model in rviz, fake_diff_encoders and odometer nodes for visualization-->
 <launch>
 
-<!--<include file="$(find tsim)/launch/turtle_pent.launch"/>-->
+<!--  launch control node for the simulator-->
+<include file="$(find tsim)/launch/turtle_pent.launch"/>
 
-<!--<include file="$(find nuturtle_description)/launch/view_diff_drive.launch">-->
-<!--    <arg name="use_jsp_gui" value="false" doc="False for not using joint state publisher"/>-->
-<!--</include>-->
+<include file="$(find nuturtle_description)/launch/view_diff_drive.launch">
+    <arg name="use_jsp_gui" value="false" doc="False for not using joint state publisher"/>
+</include>
 
-<!--<node name="Obstacles" pkg="real_world" type="obstacles">-->
-<!--      <rosparam file="$(find real_world)/config/params.yaml" />-->
-<!--</node>-->
+<node name="Obstacles" pkg="real_world" type="obstacles">
+      <rosparam file="$(find real_world)/config/params.yaml" />
+</node>
 
 <node name = "Odometer" pkg = "rigid2d"  type = "rigid2d_Odometer_node" output="screen" >
   <rosparam file="$(find real_world)/config/params.yaml" />
@@ -19,18 +20,22 @@
   <remap from="odom_frame_id" to="~odom_frame_id"/>
 </node>
 
-<!--<node name = "Fake_Diff_Encoders" pkg = "rigid2d"  type = "rigid2d_Fake_Diff_Encoders_node" output="screen" >-->
-<!--  <rosparam file="$(find real_world)/config/params.yaml" />-->
-<!--  <remap from="body_frame_id" to="~body_frame_id"/>-->
-<!--  <remap from="right_wheel_joint" to="~right_wheel_joint"/>-->
-<!--  <remap from="left_wheel_joint" to="~left_wheel_joint"/>-->
-<!--  <remap from="odom_frame_id" to="~odom_frame_id"/>-->
-<!--  <remap from="/cmd_vel" to="/turtle1/cmd_vel"/>-->
-<!--</node>-->
+<node name = "Fake_Diff_Encoders" pkg = "rigid2d"  type = "rigid2d_Fake_Diff_Encoders_node" output="screen" >
+  <rosparam file="$(find real_world)/config/params.yaml" />
+  <remap from="body_frame_id" to="~body_frame_id"/>
+  <remap from="right_wheel_joint" to="~right_wheel_joint"/>
+  <remap from="left_wheel_joint" to="~left_wheel_joint"/>
+  <remap from="odom_frame_id" to="~odom_frame_id"/>
+  <remap from="/cmd_vel" to="/turtle1/cmd_vel"/>
+</node>
 
 <!--<node name = "RealWorld" pkg = "real_world"  type = "real_world" output="screen" launch-prefix="gdb &#45;&#45;args">-->
   <node name = "RealWorld" pkg = "real_world"  type = "real_world" output="screen">
   <rosparam file="$(find real_world)/config/params.yaml" />
 </node>
+
+  <node name="ekf_node" pkg="ekf_slam" type="ekf_node" output="screen">
+      <rosparam file="$(find real_world)/config/params.yaml" />
+  </node>
 
 </launch>

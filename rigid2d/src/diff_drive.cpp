@@ -54,7 +54,7 @@ rigid2d::WheelVel rigid2d::DiffDrive::updateOdometry(const double& l_encoding, c
         l_vel = -1.0*l_vel/abs(l_vel) * (PI - abs(l_vel));
 
     if (abs(r_vel)> PI)
-        l_vel = -1.0*r_vel/abs(r_vel) * (PI - abs(r_vel));
+        r_vel = -1.0*r_vel/abs(r_vel) * (PI - abs(r_vel));
 
     wheel_velocities.u_l = l_vel;
     wheel_velocities.u_r = r_vel;

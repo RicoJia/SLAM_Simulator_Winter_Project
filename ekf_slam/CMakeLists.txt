@@ -9,10 +9,13 @@ project(ekf_slam)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+
+#find_package( real_world REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -157,6 +160,10 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
+install(PROGRAMS
+    scripts/ekf_node
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 # install(PROGRAMS
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

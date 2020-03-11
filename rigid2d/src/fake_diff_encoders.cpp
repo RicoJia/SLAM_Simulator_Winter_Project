@@ -1,7 +1,6 @@
 //
 // Created by ricojia on 1/23/20.
 //
-
 #include "rigid2d/fake_diff_encoders.hpp"
 
 using namespace rigid2d;

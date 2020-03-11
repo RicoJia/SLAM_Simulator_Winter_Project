@@ -22,7 +22,7 @@
 
 wheel_radius: 0.2
 wheel_base: 1.2
-frequency: 60
+frequency: 60       #TODO: WHAT THE HECK? WHY Can't I decrese this??
 
 odom_frame_id: 'odom'
 body_frame_id: 'base_link'
@@ -40,6 +40,7 @@ stddev_z:  [0.0,0.0]
 
 circular_obstacles_x: [3.0, 2.0, 1.0]
 circular_obstacles_y: [3.0, 3.0, 3.0]
+circular_obstacles_num: 3
 circular_obstacle_radius: 0.2    #assume cylindrical circular_obstacles
 rectangular_obstacles_x: [0.0, 0.0, 4.1, -4.1]
 rectangular_obstacles_y: [-4.1, 4.1, 0.0, 0.0]
