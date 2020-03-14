@@ -1,7 +1,7 @@
 <!-- Purpose: launch waypoints generation node and turtlesim-->
 
 <launch>
-<node name = "roaming_turtle" pkg="turtlesim" type="turtlesim_node" required="true"/>
+<!--<node name = "roaming_turtle" pkg="turtlesim" type="turtlesim_node" required="true"/>-->
 
 <node name = "TurtleWay" pkg = "tsim"  type = "TurtleWay" output="screen" >
   <rosparam file="$(find tsim)/config/params.yaml" />

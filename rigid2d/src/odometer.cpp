@@ -80,7 +80,7 @@ Odometer::Odometer(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive()
 
     odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
     current_time = ros::Time::now();
-    sub = nh.subscribe("/joint_states", 10, &Odometer::sub_callback, this);    //TODO
+    sub = nh.subscribe("/joint_states", 10, &Odometer::sub_callback, this);
 
     auto init_pose = Twist2D();  //default pose
     diff_drive = DiffDrive(init_pose, wheel_base, wheel_radius);
@@ -94,20 +94,23 @@ void Odometer::sub_callback(const sensor_msgs::JointState& msg){
     int right_index = std::distance(msg.name.begin(), right_iterator);
 
     WheelVel wheel_vel_odometer(msg.velocity[left_index], msg.velocity[right_index]);
+
     //Update wheel positions, based on the noisy wheel velocities
     auto wheel_pos = diff_drive.wheelPositions();        //actual wheel_positions, after the noisy increment
     wheel_pos = get_new_wheel_pos(wheel_pos, wheel_vel_odometer);    //this is not updating the diff_drive parameter. This is for update odometry only.
 
     diff_drive.updateOdometry(wheel_pos.theta_l, wheel_pos.theta_r);    //update the real world twist of the robot.
-//    auto twist_increment = diff_drive.wheelsToTwist(wheel_increment);
+
     auto pose_twist = diff_drive.get_pose();
     diff_drive.update_wheel_pos(wheel_vel_odometer);
-    auto velocity_twist= diff_drive.wheelsToTwist(wheel_vel_odometer);
+    auto velocity_twist = diff_drive.wheelsToTwist(wheel_vel_odometer);
 
     //construct odom msg and publish here
     nav_msgs::Odometry odom_msg = construct_odom_msg(pose_twist, velocity_twist);
     odom_pub.publish(odom_msg);
 
+    //TODO: change this
+//    std::cout<<"odometer velocity twist:"<<std::endl<<velocity_twist<<std::endl;
     //broadcast here
     geometry_msgs::TransformStamped odom_trans = construct_tf(pose_twist);
     odom_broadcaster.sendTransform(odom_trans);

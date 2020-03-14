@@ -519,10 +519,13 @@ void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
     auto noisy_twist = Twist2D(noisy_angular_vel, noisy_linear_vel, noiseless_twist.y);
     diff_drive.feedforward(noisy_twist);
 
-    //update wheel_pos and wheel_vel
-    wheel_vel = diff_drive.twistToWheels(noisy_twist);
+    send_world_actual_robot_tf();
+    wheel_vel = WheelVel(msg.velocity[left_index], msg.velocity[right_index]);
     diff_drive.update_wheel_pos(wheel_vel);
     wheel_pos = diff_drive.wheelPositions();
+
+    //TODO
+//    pub_wheel_joint_states();
 
 }
 
@@ -561,11 +564,6 @@ void RealWorld::pub_landmark_list() {
     for (unsigned int i = 0; i < circular_obstacles_y.size(); ++i){
         real_world::Landmark landmark;
 
-//        time last_update
-//        string landmark_id
-//        geometry_msgs/Point position
-//        float64[2] position_covariance
-
         landmark.last_update = ros::Time::now().toSec() - landmark_init_time;
         landmark.landmark_id = i;
         landmark.position_stddev[0]= stddev_z[0];
@@ -574,11 +572,13 @@ void RealWorld::pub_landmark_list() {
         double x = circular_obstacles_x[i];
         double y = circular_obstacles_y[i];
         double range = distance(Vector2D(current_pose.x, current_pose.y), Vector2D(x,y));
-        double bearing = angle(Vector2D(current_pose.x - x, current_pose.y -y));
+        double bearing = angle(Vector2D(x - current_pose.x, y - current_pose.y)) - current_pose.theta;
         double noisy_range = add_noise(range, miu_z[0], stddev_z[0]);
         double noisy_bearing = add_noise(bearing, miu_z[1], stddev_z[1]);
         landmark.range = noisy_range;
         landmark.bearing = noisy_bearing;
+
+//        std::cout<<"landmark range: "<<landmark.range<<" bearing: "<<landmark.bearing<<std::endl;
 //        position =
         landmark_list.landmarks.push_back(landmark);
     }
@@ -605,14 +605,26 @@ int main(int argc, char**argv){
     RealWorld real_world(nh,nh2);
 //    FakeLaserScan laserScan(nh, nh2);
 //    ros::Rate r(laserScan.get_pub_frequency());
-    ros::Rate r(40);
+    int frequency;
+    nh2.getParam("frequency", frequency);
+    ros::Rate r(frequency);
+    int count = 1;
     while(nh.ok()) {
         real_world.send_world_actual_robot_tf();
         real_world.pub_wheel_joint_states();
-        real_world.pub_landmark_list();
+//        real_world.pub_landmark_list();
 //        laserScan.pub_scan_msgs();
+        if (count == 1){
+            real_world.pub_landmark_list();
+
+            count = 1;
+        }
+        else{
+            ++count;
+        }
+
         ros::spinOnce();
-//        r.sleep();
+        r.sleep();
     }
     return 0;
 }
