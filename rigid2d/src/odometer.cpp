@@ -112,8 +112,6 @@ void Odometer::sub_callback(const sensor_msgs::JointState& msg){
     //broadcast here
     geometry_msgs::TransformStamped odom_trans = construct_tf(pose_twist);
     odom_broadcaster.sendTransform(odom_trans);
-
-    std::cout<<"------------"<<std::endl<<pose_twist<<std::endl;
 }
 
 nav_msgs::Odometry Odometer::construct_odom_msg(const rigid2d::Twist2D& pose_twist,const rigid2d::Twist2D& velocity_twist ){

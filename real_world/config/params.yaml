@@ -31,7 +31,6 @@ laser_scanner_radius: 0.02
 laser_scanner_height: 0.02
 
 frequency: 20       #TODO: WHAT THE HECK? WHY Can't I decrese this??
-#frequency: 40
 
 odom_frame_id: 'odom'
 body_frame_id: 'base_link'
@@ -43,7 +42,7 @@ left_wheel_joint: 'left_wheel_axle'
 right_wheel_joint: 'right_wheel_axle'
 
 miu_vel: [0.0, 0.0]
-stddev_vel: [0.01,0.01]
+stddev_vel: [0.00,0.05]
 miu_z:  [0.0,0.0]
 stddev_z:  [0.0,0.0]
 

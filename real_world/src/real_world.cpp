@@ -405,6 +405,10 @@ public:
     /// \brief publishing landmark info
     void pub_landmark_list();
 
+    /// \brief for landmark update, there might be a mismatch between the robot pose in the filter and the pose for landmark update.
+    /// by using this function, we can send landmarks based on the previous robot pose, not the current one.
+    void update_last_sent_pose_for_landmarks();
+
 private:
     double wheel_base, wheel_radius;
     int frequency;
@@ -423,6 +427,7 @@ private:
     string left_wheel_joint;
     string right_wheel_joint;
     rigid2d::DiffDrive diff_drive;
+    rigid2d::Twist2D last_pose_twist;
 
     std::vector<double> miu_vel, stddev_vel, miu_z, stddev_z;
     std::vector<double> circular_obstacles_x, circular_obstacles_y;
@@ -501,6 +506,7 @@ RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wh
     sub = nh.subscribe("/joint_states_pure", 10, &RealWorld::sub_callback, this);
     auto init_pose = Twist2D();  //default pose
     diff_drive = DiffDrive(init_pose, wheel_base, wheel_radius);
+    last_pose_twist = Twist2D();
 
     //send static transform from /world to /map
     geometry_msgs::TransformStamped static_tf_msg = construct_tf(Twist2D(0.0, 0.0, 0.0), world_frame_id, map_frame_id);
@@ -538,6 +544,9 @@ void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
 
 }
 
+void RealWorld::update_last_sent_pose_for_landmarks(){
+    last_pose_twist = diff_drive.get_pose();
+}
 
 void RealWorld::send_world_actual_robot_tf() {
     geometry_msgs::TransformStamped world_actual_robot_trans = construct_tf(diff_drive.get_pose(), world_frame_id, actual_robot_frame_id);
@@ -566,11 +575,14 @@ void RealWorld::pub_wheel_joint_states() {
     sensor_msgs::JointState joint_state_msg = construct_joint_state_msg(wheel_pos,wheel_vel);
     joint_state_pub.publish(joint_state_msg);
     wheel_vel = 0;
+
 }
 
 void RealWorld::pub_landmark_list() {
     real_world::LandmarkList landmark_list;
-    auto current_pose = diff_drive.get_pose();
+//    auto current_pose = diff_drive.get_pose();
+    //TODO: recover this
+    auto current_pose = last_pose_twist;
     for (unsigned int i = 0; i < circular_obstacles_y.size(); ++i){
         real_world::Landmark landmark;
 
@@ -582,18 +594,21 @@ void RealWorld::pub_landmark_list() {
         double x = circular_obstacles_x[i];
         double y = circular_obstacles_y[i];
         double range = distance(Vector2D(current_pose.x, current_pose.y), Vector2D(x,y));
+
+
         double bearing = angle(Vector2D(x - current_pose.x, y - current_pose.y)) - current_pose.theta;
         double noisy_range = add_noise(range, miu_z[0], stddev_z[0]);
         double noisy_bearing = add_noise(bearing, miu_z[1], stddev_z[1]);
         landmark.range = noisy_range;
         landmark.bearing = noisy_bearing;
 
-//        std::cout<<"landmark range: "<<landmark.range<<" bearing: "<<landmark.bearing<<std::endl;
-//        position =
         landmark_list.landmarks.push_back(landmark);
     }
 
     landmark_list_pub.publish(landmark_list);
+
+    std::cout<<"real world is based on: "<<current_pose;
+
 
 }
 
@@ -620,9 +635,8 @@ int main(int argc, char**argv){
     ros::Rate r(frequency);
     int count = 1;
     while(nh.ok()) {
-        real_world.send_world_actual_robot_tf();
-        real_world.pub_wheel_joint_states();
-        if (count == 1){
+
+        if (count == 20){
             real_world.pub_landmark_list();
 
             count = 1;
@@ -630,7 +644,9 @@ int main(int argc, char**argv){
         else{
             ++count;
         }
-
+        real_world.send_world_actual_robot_tf();
+        real_world.update_last_sent_pose_for_landmarks();
+        real_world.pub_wheel_joint_states();
         ros::spinOnce();
         r.sleep();
     }

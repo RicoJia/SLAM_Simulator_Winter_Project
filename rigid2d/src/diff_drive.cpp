@@ -24,7 +24,6 @@ rigid2d::WheelVel rigid2d::DiffDrive::twistToWheels(const Twist2D& body_twist){
             auto u = H.inverse()*v;
             wheelVel.u_l = u[0];
             wheelVel.u_r = u[1];
-
         }
     }
     catch (std::exception &e){ std::cerr<<"Error! "<<e.what()<<std::endl; }
@@ -69,7 +68,6 @@ rigid2d::WheelVel rigid2d::DiffDrive::updateOdometry(const double& l_encoding, c
 }
 
 void rigid2d::DiffDrive::feedforward(const rigid2d::Twist2D& body_twist){
-
     auto new_transform = integrateTwist(body_twist);
     pose_transform*=new_transform;
 }
