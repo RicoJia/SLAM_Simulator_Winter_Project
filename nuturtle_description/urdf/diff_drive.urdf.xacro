@@ -64,7 +64,7 @@
     </xacro:macro>
 
     <!--    link-->
-    <link name="base_link">
+    <link name="actual_robot">
         <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
          <geometry>
