@@ -151,8 +151,8 @@ def SE2_to_Twist(T):
 
 SIGMA_V = 0.05
 SIGMA_W = 0.01
-SIGMA_RANGE = 0.1
-SIGMA_BEARING = 0.1
+SIGMA_RANGE = 0.01
+SIGMA_BEARING = 0.01
 TOTAL_STEP_NUM = 1000
 
 
@@ -279,7 +279,7 @@ class ekf_object():
 
         # ---------------- Step 3: Kalman gain update -----------------#
             S_i_t = H_i_t.dot(self.sigma).dot(H_i_t.T) + self.Q
-            K_i_t = ( self.sigma.dot(H_i_t.T) ).dot( np.linalg.pinv(S_i_t, rcond=1e-10) )
+            K_i_t = ( self.sigma.dot(H_i_t.T) ).dot( np.linalg.pinv(S_i_t, rcond=1e-7) )
 
 
         # ------------------- Step 4: mean update ---------------------#
