@@ -254,8 +254,6 @@ class ekf_node(object):
     def landmarks_callback(self, landmarks_msg):
         # In this step, we update the robot's estimated pose, by running the Filter
         self.landmarks = np.empty((0, 3))
-        print "miu 1 is: "
-        print self.ekf_obj.miu[:2, 0]
         for i_landmark in range(len(landmarks_msg.landmarks)):
             landmark = landmarks_msg.landmarks[i_landmark]
             landmark_arr = np.zeros(3)
@@ -267,9 +265,6 @@ class ekf_node(object):
 
         innovation = self.ekf_obj.measurement_update( self.landmarks)
 
-        print "miu is: "
-        print self.ekf_obj.miu[:2, 0]
-        print "--------"
 
         self.ekf_obj.miu += innovation
         #miu = ([2*n + 3]x1) matrix, [x, y, theta, mx1, my1...]

@@ -57,7 +57,7 @@ visualization_msgs::Marker make_rectangular_marker(double x, double y, double le
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = x;
     marker.pose.position.y = y;
-    marker.pose.position.z = 0.5;
+    marker.pose.position.z = 0.25;
 
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
 

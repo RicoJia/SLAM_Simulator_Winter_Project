@@ -56,7 +56,6 @@ using rigid2d::Twist2D;
 using rigid2d::distance;
 using rigid2d::angle;
 constexpr double PI = 3.14159265;
-constexpr char FRAME_ID[] = "base_link";
 
 
 //----------------------------------------------------------------------------------------------Fake Laser Scan
@@ -173,6 +172,7 @@ public:
         //    loading parameters
         nh2.getParam("laser_frequency", laser_frequency);
         nh2.getParam("scan_radius", scan_radius);
+        nh2.getParam("actual_robot_frame_id", FRAME_ID);
         ranges = std::vector<double>(num_readings,scan_radius);
 
         nh2.getParam("circular_obstacles_x", circular_obstacles_x);
@@ -203,6 +203,7 @@ private:
     unsigned int num_readings;
     double scan_radius;
     int laser_frequency;
+    std::string FRAME_ID;
     std::vector<double> ranges;
     double circular_obstacle_radius;
     ros::Publisher scan_pub;
@@ -304,6 +305,10 @@ void FakeLaserScan::pub_scan_msgs(){
                 }
             }
         }
+
+        //TODO
+//        std::cout<<"range: "<< range<<std::endl;
+        std::cout<<"T_bs: "<<std::endl<<T_bs;
     }
 
     scan_pub.publish(scan);
@@ -328,6 +333,8 @@ void FakeLaserScan::map_sub_callback(){
     m.getRPY(roll, pitch, yaw);
     auto T_sb = Transform2D(Vector2D(x_sb, y_sb), yaw);
     T_bs = T_sb.inv();
+
+    std::cout<<"x_sb: "<<x_sb;
 }
 
 void  FakeLaserScan::update_range_and_heading (double& range, double& bearing, unsigned int i){
@@ -448,6 +455,9 @@ private:
 /// \param tf message (geometry_msgs::TransformStamped)
     geometry_msgs::TransformStamped construct_tf(const rigid2d::Twist2D&, const std::string& frame_id, const std::string& child_frame_id );
 
+/// \brief LaserScanner needs to know the actual robot pose. This function updates a global variable called "GLOBAL_MAP_ODOM_MSG"
+    void update_global_map_odom_msg();
+
 
 ///\brief constructing a joint state message to represent wheel positions and wheel velocities
 ///\param wheel_pos(rigid2d::WheelPos) left and right wheel positions
@@ -515,6 +525,16 @@ RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wh
     get_real_pose_srv = nh2.advertiseService("get_real_pose", &RealWorld::get_real_pose_srv_callback, this);
 }
 
+void RealWorld::update_global_map_odom_msg(){
+    nav_msgs::Odometry pose_odom_msg;
+    auto current_pose = diff_drive.get_pose();
+    pose_odom_msg.pose.pose.position.x = current_pose.x;
+    pose_odom_msg.pose.pose.position.y = current_pose.y;
+    geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromYaw(current_pose.theta);
+    pose_odom_msg.pose.pose.orientation = quat;
+    GLOBAL_MAP_ODOM_MSG = pose_odom_msg;
+}
+
 bool RealWorld::get_real_pose_srv_callback(real_world::GetRealPoseRequest& , real_world::GetRealPoseResponse& res){
     auto pose =  diff_drive.get_pose();
     res.theta =  pose.theta;
@@ -534,7 +554,6 @@ void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
     auto noiseless_twist = diff_drive.wheelsToTwist(WheelVel(msg.velocity[left_index], msg.velocity[right_index]));
     double noisy_angular_vel = add_noise(noiseless_twist.theta, miu_vel[0], stddev_vel[0]);
     double noisy_linear_vel = add_noise(noiseless_twist.x, miu_vel[1], stddev_vel[1]);
-//    auto noisy_twist = Twist2D(noiseless_twist.theta + noisy_angular_vel, noiseless_twist.x + noisy_linear_vel, noiseless_twist.y);
     auto noisy_twist = Twist2D(noisy_angular_vel, noisy_linear_vel, noiseless_twist.y);
     diff_drive.feedforward(noisy_twist);
 
@@ -551,6 +570,7 @@ void RealWorld::update_last_sent_pose_for_landmarks(){
 void RealWorld::send_world_actual_robot_tf() {
     geometry_msgs::TransformStamped world_actual_robot_trans = construct_tf(diff_drive.get_pose(), world_frame_id, actual_robot_frame_id);
     world_actual_robot_broadcaster.sendTransform(world_actual_robot_trans);
+    update_global_map_odom_msg();
 }
 
 
@@ -580,8 +600,7 @@ void RealWorld::pub_wheel_joint_states() {
 
 void RealWorld::pub_landmark_list() {
     real_world::LandmarkList landmark_list;
-//    auto current_pose = diff_drive.get_pose();
-    //TODO: recover this
+
     auto current_pose = last_pose_twist;
     for (unsigned int i = 0; i < circular_obstacles_y.size(); ++i){
         real_world::Landmark landmark;
@@ -607,9 +626,6 @@ void RealWorld::pub_landmark_list() {
 
     landmark_list_pub.publish(landmark_list);
 
-    std::cout<<"real world is based on: "<<current_pose;
-
-
 }
 
 sensor_msgs::JointState RealWorld::construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel){
@@ -628,8 +644,8 @@ int main(int argc, char**argv){
     ros::NodeHandle nh;
     ros::NodeHandle nh2("~");
     RealWorld real_world(nh,nh2);
-//    FakeLaserScan laserScan(nh, nh2);
-//    ros::Rate r(laserScan.get_pub_frequency());
+    FakeLaserScan laserScan(nh, nh2);
+
     int frequency;
     nh2.getParam("frequency", frequency);
     ros::Rate r(frequency);
@@ -637,8 +653,8 @@ int main(int argc, char**argv){
     while(nh.ok()) {
 
         if (count == 20){
+            //1/20 of the loop frequency
             real_world.pub_landmark_list();
-
             count = 1;
         }
         else{
@@ -647,6 +663,7 @@ int main(int argc, char**argv){
         real_world.send_world_actual_robot_tf();
         real_world.update_last_sent_pose_for_landmarks();
         real_world.pub_wheel_joint_states();
+        laserScan.pub_scan_msgs();
         ros::spinOnce();
         r.sleep();
     }
