@@ -13,16 +13,25 @@
 #length is defined as the length of the side that is parallel to the x axis of the cube. Width is parallel to the y axis of the cube. Height is automatically 0.5m
 #laser_frequency: update freuqency of the laser scanner
 #scan_radius: maximum scan radius of the laser scanner
-
 #miu_vel: mean of velocities [angular, linear]
 #stddev_vel: standard deviation of velocity
 #miu_z:  mean of observation, [range, bearing]
 #stddev_z:  standard deviation of observation
 
 
-wheel_radius: 0.2
-wheel_base: 1.2
+wheel_width: 0.018
+wheel_radius: 0.033
+wheel_base: 0.16
+chassis_length: 0.138
+chassis_thickness: 0.140
+wheel_mass: 0.03
+chassis_mass: 1.0
+wheel_axle_offset: 0.02
+laser_scanner_radius: 0.02
+laser_scanner_height: 0.02
+
 frequency: 20       #TODO: WHAT THE HECK? WHY Can't I decrese this??
+#frequency: 40
 
 odom_frame_id: 'odom'
 body_frame_id: 'base_link'
@@ -34,7 +43,7 @@ left_wheel_joint: 'left_wheel_axle'
 right_wheel_joint: 'right_wheel_axle'
 
 miu_vel: [0.0, 0.0]
-stddev_vel: [0.05,0.0]
+stddev_vel: [0.01,0.01]
 miu_z:  [0.0,0.0]
 stddev_z:  [0.0,0.0]
 
@@ -46,8 +55,8 @@ circular_obstacles_num: 3
 circular_obstacle_radius: 0.2    #assume cylindrical circular_obstacles
 rectangular_obstacles_x: [0.0, 0.0, 4.1, -4.1]
 rectangular_obstacles_y: [-4.1, 4.1, 0.0, 0.0]
-rectangular_obstacles_length: [0,0,0,0]
-rectangular_obstacles_width: [0, 0, 0, 0]
+rectangular_obstacles_length: [0.1,0.1,0.1,0.1]
+rectangular_obstacles_width: [0.1, 0.1, 0.1, 0.1]
 #rectangular_obstacles_length: [8.4, 8.4, 8.0, 8.0]
 #rectangular_obstacles_width: [0.2, 0.2, 0.2, 0.2]
 rectangular_obstacles_orientation: [0.0, 0.0, 1.57, -1.57]

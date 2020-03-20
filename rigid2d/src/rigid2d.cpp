@@ -93,6 +93,7 @@ std::istream & rigid2d::operator>>(std::istream & is, rigid2d::Twist2D & v){
     is>>v.y;
     return is;
 }
+
 rigid2d::Twist2D rigid2d::Transform2D::operator()(rigid2d::Twist2D v) const{
     auto adj = T;
     adj(0,2) = T(1,2);

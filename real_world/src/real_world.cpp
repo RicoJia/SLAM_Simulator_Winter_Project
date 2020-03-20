@@ -21,6 +21,8 @@
 ///    tf/transform_broadcaster: transform for Rviz
 /// \SUBSCRIBES:
 ///   joint_states_pure (/sensor_msgs/JointState): topic to publish joint states on Rviz. Real world  calculates the actual robot pose based on the the wheel velocity.
+/// \SERVICES:
+///   get_real_pose / real_world/GetRealPose: return the real pose of the robot.
 
 #include <ros/ros.h>
 #include <sensor_msgs/LaserScan.h>
@@ -44,6 +46,7 @@
 #include <random>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include "real_world/LandmarkList.h"
+#include "real_world/GetRealPose.h"
 
 
 using std::string;
@@ -447,6 +450,9 @@ private:
 ///\return joint state message for left and right wheels (sensor_msgs::JointState)
     sensor_msgs::JointState construct_joint_state_msg(const rigid2d::WheelPos& wheel_pos, const rigid2d::WheelVel& wheel_vel);
 
+/// \brief this is the service for returning the actual pose of the robot.
+    ros::ServiceServer get_real_pose_srv;
+    bool get_real_pose_srv_callback(real_world::GetRealPoseRequest& , real_world::GetRealPoseResponse& res);
 };
 
 double add_noise(double var, double mean, double stddev){
@@ -500,9 +506,16 @@ RealWorld::RealWorld(ros::NodeHandle& nh, ros::NodeHandle& nh2):diff_drive(), wh
     geometry_msgs::TransformStamped static_tf_msg = construct_tf(Twist2D(0.0, 0.0, 0.0), world_frame_id, map_frame_id);
     static_world_map_broadcaster.sendTransform(static_tf_msg);
 
-
+    get_real_pose_srv = nh2.advertiseService("get_real_pose", &RealWorld::get_real_pose_srv_callback, this);
 }
 
+bool RealWorld::get_real_pose_srv_callback(real_world::GetRealPoseRequest& , real_world::GetRealPoseResponse& res){
+    auto pose =  diff_drive.get_pose();
+    res.theta =  pose.theta;
+    res.x = pose.x;
+    res.y = pose.y;
+    return true;
+    }
 
 void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
 
@@ -519,13 +532,9 @@ void RealWorld::sub_callback(const sensor_msgs::JointState& msg){
     auto noisy_twist = Twist2D(noisy_angular_vel, noisy_linear_vel, noiseless_twist.y);
     diff_drive.feedforward(noisy_twist);
 
-    send_world_actual_robot_tf();
     wheel_vel = WheelVel(msg.velocity[left_index], msg.velocity[right_index]);
     diff_drive.update_wheel_pos(wheel_vel);
     wheel_pos = diff_drive.wheelPositions();
-
-    //TODO
-//    pub_wheel_joint_states();
 
 }
 
@@ -556,6 +565,7 @@ geometry_msgs::TransformStamped RealWorld::construct_tf(const rigid2d::Twist2D& 
 void RealWorld::pub_wheel_joint_states() {
     sensor_msgs::JointState joint_state_msg = construct_joint_state_msg(wheel_pos,wheel_vel);
     joint_state_pub.publish(joint_state_msg);
+    wheel_vel = 0;
 }
 
 void RealWorld::pub_landmark_list() {
@@ -612,8 +622,6 @@ int main(int argc, char**argv){
     while(nh.ok()) {
         real_world.send_world_actual_robot_tf();
         real_world.pub_wheel_joint_states();
-//        real_world.pub_landmark_list();
-//        laserScan.pub_scan_msgs();
         if (count == 1){
             real_world.pub_landmark_list();
 

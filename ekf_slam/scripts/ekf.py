@@ -191,15 +191,12 @@ class ekf_object():
 
         u_twist = np.array([w_t, v_t, 0])*delta_t
 
-        #TODO
-        # print "------in filter u_t:"
-        # print u_twist
-
         T_bb1 = twist_to_SE2(u_twist)
         pose_twist = np.array([self.miu[2,0], self.miu[0,0], self.miu[1,0]])
         T_sb = pose_twist_to_SE2(pose_twist)
         T_sb1 = T_sb.dot(T_bb1)
         new_pose = SE2_to_Pose_Twist(T_sb1)
+
         self.miu[0,0] = new_pose[1]
         self.miu[1,0] = new_pose[2]
         self.miu[2,0] = new_pose[0]
@@ -225,8 +222,6 @@ class ekf_object():
         # sigma_t_bar = (G_t.dot(self.sigma)).dot(G_t.T) + R_t
         sigma_t_bar = (G_t.dot(self.sigma)).dot(G_t.T) + ((F_k.T).dot(R_t)).dot(F_k)
         self.sigma = sigma_t_bar
-
-
 
 
     def measurement_update(self, z_t):
@@ -303,8 +298,6 @@ class ekf_object():
             # self.miu = self.miu + innovation
             total_innovation += innovation
 
-            #TODO: see z_t
-            print ("z_t_diff: ", z_t_difference)
         return total_innovation
 
 

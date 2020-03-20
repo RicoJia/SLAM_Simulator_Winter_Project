@@ -13,6 +13,7 @@ from real_world.msg import LandmarkList
 from sensor_msgs.msg import JointState
 from nav_msgs.msg import Odometry
 from ekf import ekf_object
+from real_world.srv import GetRealPose, GetRealPoseResponse
 
 #-------------------------------------------------------helper functions
 # convert radians into [-pi, pi]
@@ -45,8 +46,6 @@ def SE2_inv(T):
     p = T[:2,2]
     R = T[:2, :2]
     Rt = np.array(R).T
-    print ("R: ", R)
-    print("T: ", T)
     return np.r_[np.c_[Rt, -np.dot(Rt, p)], [[0, 0, 1]]]
     
 def theta_2_SO2(theta):
@@ -179,8 +178,6 @@ class ekf_node(object):
         self.odom_frame_id = rospy.get_param("~odom_frame_id")
         self.map_frame_id = rospy.get_param("~map_frame_id")
         self.map_odom_broadcaster = tf.TransformBroadcaster()
-        self.joint_positions = np.array([0.0, 0.0])
-        self.last_joint_positions = np.array([0.0, 0.0])
 
         self.last_update_time = 0.0
         self.landmarks = np.empty((0, 3))           #self.landmarks: [time, id, range, bearing, range_stddev, bearing_stddev]
@@ -198,6 +195,24 @@ class ekf_node(object):
         rospy.Subscriber("/joint_states", JointState, self.joint_states_callback)
         rospy.Subscriber("/landmarks", LandmarkList, self.landmarks_callback)
         rospy.Subscriber("/odom", Odometry, self.odom_callback)
+        self.initialize_pose()
+        self.initialized_delay_applied = False
+
+    def initialize_pose(self):
+        """
+        Initialize the fitler pose from the actual world frame pose of the robot
+        """
+        rospy.wait_for_service("/RealWorld/get_real_pose")
+
+        try:
+            get_real_pose = rospy.ServiceProxy("/RealWorld/get_real_pose", GetRealPose)
+            resp1 = get_real_pose()
+            self.ekf_obj.miu[0,0] = resp1.x
+            self.ekf_obj.miu[1,0] = resp1.y
+            self.ekf_obj.miu[2,0] = resp1.theta
+            self.Twist_ob = np.array([resp1.theta, resp1.x, resp1.y])
+        except rospy.ServiceException:
+            print "EKF node pose initialization Service Failed"
 
     def publish_tf(self):
         self.map_odom_broadcaster.sendTransform((self.Twist_so[1], self.Twist_so[2], 0.0),
@@ -207,12 +222,14 @@ class ekf_node(object):
                                                 self.map_frame_id
                                                 )
 
-    def get_unnormalized_control_input(self):
+    def get_unnormalized_control_input(self, joint_velocities):
         # Return: commanded control input np array [ theta_dot, x_dot,y_dot]
         # Assumption of this function is: landmark observations come before wheels finish half revolution.
-
+        # Args:
+        #     joint_velocities - wheel velocities [left_wheel, right_wheel]
         # get normalized wheel increments
-        delta_wheel_pos = self.joint_positions - self.last_joint_positions
+        delta_wheel_pos = joint_velocities
+
         l_vel = normalize_angle( delta_wheel_pos[0] )
         r_vel = normalize_angle( delta_wheel_pos[1] )
         PI = np.pi
@@ -231,7 +248,6 @@ class ekf_node(object):
         if v[0] == -PI:
             v[0] = PI
 
-        # output= np.array([v[1], v[0]])
         return v
 
 
@@ -262,44 +278,6 @@ class ekf_node(object):
         Tso = Tsb.dot(Tbo)
         self.Twist_so = SE2_to_Pose_Twist(Tso)
 
-#
-#         current_update_time = landmark.last_update
-#         delta_t = current_update_time - self.last_update_time
-#         self.last_update_time = current_update_time
-#
-# ##########################
-#         self.T_control_reset_flag = True
-#         T_control_temp = np.copy(self.T_control)
-#         self.T_control = np.identity(3)
-#         self.T_control_reset_flag = False
-#
-#         #         #TODO:
-#         # print("--------")
-#         # print("T_control should be all zero: ")
-#         # print (self.T_control)
-#
-#         # if self.T_control_bufferred_flag == True:
-#         #     self.T_control = self.T_control.dot(self.T_control_buffer)
-#         #     self.T_control_buffer = np.identity(3)
-#         #     self.T_control_bufferred_flag = False
-#
-#         commanded_control_twist = SE2_to_Twist(T_control_temp)  #[theta_dot, x_dot, y_dot]
-#         commanded_control = np.array([ commanded_control_twist[1], commanded_control_twist[0] ]) / delta_t
-#
-# ##########################
-#
-#
-#         self.ekf_obj.filter(commanded_control, self.landmarks, delta_t)
-#
-#         #miu = ([2*n + 3]x1) matrix, [x, y, theta, mx1, my1...]
-#         new_miu= self.ekf_obj.miu[:,0]
-#         new_pose_twist = np.array([new_miu[2], new_miu[0], new_miu[1]])
-#
-#         #calculate Tso by Tsb* inv(Tob)
-#         Tsb = pose_twist_to_SE2(new_pose_twist)
-#         Tbo = np.linalg.pinv(pose_twist_to_SE2(self.Twist_ob), rcond=1e-14)
-#         Tso = Tsb.dot(Tbo)
-#         self.Twist_so = SE2_to_Pose_Twist(Tso)
 
 
     def joint_states_callback(self, joint_states_msg):
@@ -307,29 +285,36 @@ class ekf_node(object):
         In order to reduce accumulative error from wheels, we update the body twist every time we receive a wheel pos update.
         Args: joint_states_msg: new wheel states
         '''
-        self.joint_positions = np.array(joint_states_msg.position)
-        instant_control_input_twist = self.get_unnormalized_control_input()   #[theta_dot, x_dot, y_dot]
+
+        if self.initialized_delay_applied == True:
+            joint_velocities = np.array(joint_states_msg.velocity)
+
+            instant_control_input_twist = self.get_unnormalized_control_input(joint_velocities)   #[theta_dot, x_dot]
+
+            #if T_control is being reset, we want to buffer the control twist (only one control twist)
+            self.T_control = self.T_control.dot( twist_to_SE2(instant_control_input_twist) )
+
+            commanded_control_twist = SE2_to_Twist(self.T_control)  #[theta_dot, x_dot, y_dot]
+            self.T_control = np.identity(3)
+            delta_t = 1
+            commanded_control = np.array([ commanded_control_twist[1], commanded_control_twist[0] ]) / delta_t
+
+            self.ekf_obj.motion_predict(commanded_control, delta_t)
+            new_miu= self.ekf_obj.miu[:,0]
+            new_pose_twist = np.array([new_miu[2], new_miu[0], new_miu[1]])
 
 
-        #if T_control is being reset, we want to buffer the control twist (only one control twist)
-        self.T_control = self.T_control.dot( twist_to_SE2(instant_control_input_twist) )
 
-        commanded_control_twist = SE2_to_Twist(self.T_control)  #[theta_dot, x_dot, y_dot]
-        self.T_control = np.identity(3)
-        delta_t = 1
-        commanded_control = np.array([ commanded_control_twist[1], commanded_control_twist[0] ]) / delta_t
-        self.ekf_obj.motion_predict(commanded_control, delta_t)
-        new_miu= self.ekf_obj.miu[:,0]
-        new_pose_twist = np.array([new_miu[2], new_miu[0], new_miu[1]])
-        Tsb = pose_twist_to_SE2(new_pose_twist)
+            Tsb = pose_twist_to_SE2(new_pose_twist)
+            Tbo = SE2_inv(pose_twist_to_SE2(self.Twist_ob))
+            Tso = Tsb.dot(Tbo)
 
-        Tbo = SE2_inv(pose_twist_to_SE2(self.Twist_ob))
-        Tso = Tsb.dot(Tbo)
-        self.Twist_so = SE2_to_Pose_Twist(Tso)
-        self.publish_tf()
-        #reset variables
-        self.last_joint_positions = self.joint_positions
-
+            self.Twist_so = SE2_to_Pose_Twist(Tso)
+            self.publish_tf()
+            print "ekf: ", new_pose_twist
+            #reset variables
+        else:
+            self.initialized_delay_applied = True
 
     def odom_callback(self, odom_msg):
         quat_x = odom_msg.pose.pose.orientation.x
