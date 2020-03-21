@@ -8,7 +8,7 @@ using namespace rigid2d;
 
 TurtleWay::TurtleWay(){}
 
-TurtleWay::TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2): wp_vec(), max_vel(Twist2D(0.5, 0.5, 0.0)), wp()
+TurtleWay::TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2)
 {
 
     vector<double> waypoints_x, waypoints_y;
@@ -17,6 +17,11 @@ TurtleWay::TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2): wp_vec(), max_v
     nh.getParam("/TurtleWay/frequency", frequency);
     nh.getParam("/TurtleWay/waypoints_x", waypoints_x);
     nh.getParam("/TurtleWay/waypoints_y", waypoints_y);
+
+    double rot_vel, trans_vel;
+    nh2.getParam("rot_vel", rot_vel);
+    nh2.getParam("trans_vel", trans_vel);
+    max_vel = Twist2D(rot_vel, trans_vel, 0.0);
 
     for (unsigned i = 0; i < waypoints_x.size(); ++i){
         Vector2D waypoint(waypoints_x[i], waypoints_y[i]);

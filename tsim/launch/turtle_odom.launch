@@ -10,7 +10,7 @@
 
 <!--  launch robot control node -->
 <node name = "TurtleWay" pkg = "tsim"  type = "TurtleWay" output="screen" >
-  <rosparam file="$(find tsim)/config/params.yaml" />
+  <rosparam file="$(find real_world)/config/params.yaml" />
     <remap from="/cmd_vel" to="/turtle1/cmd_vel"/>
 </node>
 

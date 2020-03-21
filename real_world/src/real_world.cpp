@@ -305,10 +305,6 @@ void FakeLaserScan::pub_scan_msgs(){
                 }
             }
         }
-
-        //TODO
-//        std::cout<<"range: "<< range<<std::endl;
-        std::cout<<"T_bs: "<<std::endl<<T_bs;
     }
 
     scan_pub.publish(scan);
@@ -334,7 +330,6 @@ void FakeLaserScan::map_sub_callback(){
     auto T_sb = Transform2D(Vector2D(x_sb, y_sb), yaw);
     T_bs = T_sb.inv();
 
-    std::cout<<"x_sb: "<<x_sb;
 }
 
 void  FakeLaserScan::update_range_and_heading (double& range, double& bearing, unsigned int i){

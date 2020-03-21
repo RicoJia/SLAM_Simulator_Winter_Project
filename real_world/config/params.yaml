@@ -7,10 +7,20 @@
 #stddev_z:  standard deviation of observation
 
 miu_vel: [0.0, 0.0]
-stddev_vel: [0.00,0.05]
+stddev_vel: [0.00,0.0]
 miu_z:  [0.0,0.0]
 stddev_z:  [0.0,0.0]
 laser_scan_on: 1
+
+#########################################Control parameters Parameters
+#waypoints_x: x coordinates of waypointss
+#waypoints_y: y coordinates of waypointss
+#trans_vel: max translational speed of the robot in m/s
+#rot_vel: max rotational speed of the robot in rad/s
+waypoints_x: [0.0, 0.3, 0.6, 0.9, 1.2]
+waypoints_y: [0.0, 0.0, 0.0, 0.0, 0.0]
+trans_vel: 0.22
+rot_vel: 2.84
 
 
 #########################################Robot Parameters

@@ -13,6 +13,8 @@ double Waypoints::get_theta_error(){
     auto target_vec = waypoints_vec[0] - Vector2D(dd.get_pose().x, dd.get_pose().y);
     double theta_required = angle(target_vec);
     double theta_err = normalize_angle(theta_required - theta);
+
+    std::cout<<"waypoints.cpp: "<<waypoints_vec[0];
     return theta_err;
 }
 
@@ -39,6 +41,7 @@ Twist2D Waypoints::nextWaypoint(){
     }
     else{
         double distance_err = get_distance_error();
+        std::cout<<"waypoints.cpp distance: "<<distance_err;
         if (abs(distance_err) > WAYPOINTS_DISTANCE_THRESHOLD){
             cmd_vel.x = ( abs(distance_err) >= abs(velocity_lim.x)) ? abs(distance_err)/distance_err*velocity_lim.x: distance_err;
         }

@@ -44,7 +44,7 @@ namespace rigid2d {
         explicit Waypoints(const double init_heading, double wheel_base, double wheel_radius, const std::vector<Vector2D> wps, Twist2D max_vel,
                            unsigned int frequency):
             dd(init_heading, wps[0].x, wps[0].y, 0.0, 0.0),
-            velocity_lim(2*PI*0.9*wheel_radius/wheel_base, 2*PI*0.9*wheel_radius, 0),
+            velocity_lim(PI*0.9*wheel_radius/wheel_base*frequency, PI*0.9*wheel_radius*frequency, 0),
             waypoints_vec(wps),
             frequency(frequency)
             {
