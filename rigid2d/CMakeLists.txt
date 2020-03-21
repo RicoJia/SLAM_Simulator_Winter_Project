@@ -150,7 +150,6 @@ target_link_libraries(${PROJECT_NAME}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
 add_executable(${PROJECT_NAME}_Odometer_node src/odometer.cpp)
 add_executable(${PROJECT_NAME}_Fake_Diff_Encoders_node src/fake_diff_encoders.cpp)
 #add_executable(${PROJECT_NAME}_Real_World_node src/real_world.cpp)
@@ -166,10 +165,7 @@ add_executable(${PROJECT_NAME}_Fake_Diff_Encoders_node src/fake_diff_encoders.cp
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-        ${PROJECT_NAME}
-)
+
 
 target_link_libraries(${PROJECT_NAME}_Odometer_node
         ${catkin_LIBRARIES}
@@ -201,9 +197,7 @@ target_link_libraries(${PROJECT_NAME}_Fake_Diff_Encoders_node
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-install(TARGETS ${PROJECT_NAME}_node
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+
 
 install(TARGETS ${PROJECT_NAME}_Odometer_node
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

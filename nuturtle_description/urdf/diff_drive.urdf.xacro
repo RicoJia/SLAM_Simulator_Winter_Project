@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="diff_drive">
-    <xacro:property name="diff_params" value="${load_yaml('$(find nuturtle_description)/config/diff_params.yaml')}" />
+    <xacro:property name="diff_params" value="${load_yaml('$(find real_world)/config/params.yaml')}" />
 
     <xacro:property name="grey_mat">
      <material name="arm_grey_mat">

@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
         tf
         sensor_msgs
-        message_generation
         roscpp
         std_srvs)
 
@@ -55,17 +54,6 @@ find_package(rigid2d REQUIRED)
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-## Generate messages in the 'msg' folder
-add_message_files(DIRECTORY msg
-   FILES
-        PoseError.msg
- )
-
-## Generate services in the 'srv' folder
-add_service_files(DIRECTORY srv
-   FILES
-   traj_reset.srv
- )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -74,11 +62,6 @@ add_service_files(DIRECTORY srv
 #   Action2.action
 # )
 
-## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   std_srvs
- )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -110,13 +93,12 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
 #  LIBRARIES tsim
 CATKIN_DEPENDS
 #  DEPENDS system_lib
         geometry_msgs
         sensor_msgs
-        message_runtime
         roscpp
         std_srvs
         tf
@@ -129,7 +111,7 @@ CATKIN_DEPENDS
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
+  #include
   ${catkin_INCLUDE_DIRS}
         ${rigid2d_INCLUDE_DIRS}
 )
@@ -177,7 +159,6 @@ install(TARGETS TurtleWay
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
-        include/${PROJECT_NAME}/turtle_way.hpp
         DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         )
 
@@ -194,11 +175,11 @@ install(TARGETS
 )
 
 ## Mark cpp header files for installation
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#install(DIRECTORY include/${PROJECT_NAME}/
+#  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 #   FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
-)
+#)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

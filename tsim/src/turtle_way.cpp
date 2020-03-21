@@ -1,10 +1,37 @@
-//
-// Created by ricojia on 1/24/20.
-//
+/// \file
+/// \brief A node that has the turtle follow a trajectory of user-specified waypoints.
+//The robot has a maximum forward velocity of 0.5 m/s and rotational velocity 0.5 rad/s
+///
+/// PARAMETERS:
+///     parameter_name (parameter_type): description of the parameter
+/// PUBLISHES:
+///     turtle1/cmd_vel (geometry_msgs::Twist): cmd_vel as the noiseless control input
 
-#include "tsim/turtle_way.hpp"
+#include "rigid2d/waypoints.hpp"
+#include <ros/ros.h>
+#include <vector>
+#include <geometry_msgs/Twist.h>
+
 using std::vector;
 using namespace rigid2d;
+class TurtleWay {
+public:
+    TurtleWay();
+    TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2);
+    void publish_velocity_commands();
+
+    double frequency;
+private:
+    std::vector<rigid2d::Vector2D> wp_vec;
+    double wheel_base;
+    double wheel_radius;
+    rigid2d::Twist2D max_vel;
+    rigid2d::Waypoints wp;
+
+    ros::Publisher vel_pub;
+};
+
+
 
 TurtleWay::TurtleWay(){}
 
@@ -31,27 +58,9 @@ TurtleWay::TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2)
     double init_heading = 0.0;
     wp = Waypoints(init_heading, wheel_base, wheel_radius, wp_vec, max_vel, frequency);
 
-    pose_sub = nh.subscribe("/turtle1/pose", 1, &TurtleWay::sub_callback, this);
-    error_pub = nh.advertise<tsim::PoseError>("pose_error", 50);
     vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 50);
-
-    turn_off_pen(nh, true);
-    teleport_2_bottom(nh, init_heading);
-    turn_off_pen(nh, false);
 }
 
-void TurtleWay::sub_callback(const turtlesim::Pose& pose_msg){
-
-    double theta_err = pose_msg.theta - wp.get_pose().theta;
-    double x_err = pose_msg.x - wp.get_pose().x;
-    double y_err = pose_msg.y - wp.get_pose().y;
-
-    tsim::PoseError pose_error_msg;
-    pose_error_msg.theta_error = theta_err;
-    pose_error_msg.x_error = x_err;
-    pose_error_msg.y_error = y_err;
-    error_pub.publish(pose_error_msg);
-}
 
 void TurtleWay::publish_velocity_commands() {
     auto commanded_vel = wp.nextWaypoint();
@@ -61,32 +70,6 @@ void TurtleWay::publish_velocity_commands() {
     vel_pub.publish(cmd_vel);
 }
 
-void TurtleWay::turn_off_pen(ros::NodeHandle& nh, bool status)
-{
-    ros::service::waitForService("/turtle1/set_pen", 100);
-    ros::ServiceClient client = nh.serviceClient<turtlesim::SetPen>("/turtle1/set_pen");
-    turtlesim::SetPen setpen_srv;
-    setpen_srv.request.r = 255;        //can we use a constructor here?
-    setpen_srv.request.g = 192;
-    setpen_srv.request.b = 203;
-    setpen_srv.request.width = 1;
-    setpen_srv.request.off = status;
-
-    client.call(setpen_srv);
-}
-
-void TurtleWay::teleport_2_bottom(ros::NodeHandle& nh, double init_heading)
-{
-    ros::service::waitForService("/turtle1/teleport_absolute", 100);
-    ros::ServiceClient teleport_client = nh.serviceClient<turtlesim::TeleportAbsolute>("/turtle1/teleport_absolute");
-    turtlesim::TeleportAbsolute teleportabsolute_srv;
-    teleportabsolute_srv.request.x = wp_vec[0].x;        //can we use a constructor here? Better way of doing this?
-    teleportabsolute_srv.request.y = wp_vec[0].y;
-    teleportabsolute_srv.request.theta = init_heading;
-
-    teleport_client.call(teleportabsolute_srv);
-
-}
 
 int main(int argc, char** argv){
     ros::init(argc, argv, "TurtleWay");
