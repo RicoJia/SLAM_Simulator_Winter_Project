@@ -1,7 +1,9 @@
-#ifndef RIGID2D_INCLUDE_GUARD_HPP
-#define RIGID2D_INCLUDE_GUARD_HPP
 /// \file
 /// \brief Library for two-dimensional rigid body transformations.
+
+#ifndef RIGID2D_INCLUDE_GUARD_HPP
+#define RIGID2D_INCLUDE_GUARD_HPP
+
 
 #include<iosfwd> // contains forward definitions for iostream objects
 #include <iostream>

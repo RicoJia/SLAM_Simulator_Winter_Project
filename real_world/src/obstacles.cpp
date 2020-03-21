@@ -1,6 +1,5 @@
-//
-// Created by ricojia on 1/27/20.
-//
+/// \brief This node publishes obstacles, including walls and circular obstacles
+/// PUBLISHES: visualization_marker_array (visualization_msgs/MarkerArray): array of all obstacles
 
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
@@ -10,9 +9,7 @@
 
 #include <geometry_msgs/Quaternion.h>
 
-//#include <tf/transform_datatypes.h>
-
-constexpr char frame_id[] = "map";
+constexpr char frame_id[] = "world";
 
 visualization_msgs::Marker make_circular_marker(double x, double y, double circular_obstacle_radius){
     visualization_msgs::Marker marker;

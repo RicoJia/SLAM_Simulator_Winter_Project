@@ -1,4 +1,3 @@
-// Created by ricojia on 1/28/20.
 ///\file
 
 /// \brief This node is composed of two parts: a laser scan simulator, and a "real world" environment for robot pose calculation.The reason for that is to reduce the delay caused by

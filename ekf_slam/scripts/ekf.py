@@ -1,7 +1,8 @@
+# READ THIS BEFORE IMPLEMENTING YOUR FILTER!
 # This is a model template for your landmark-based SLAM filter.
 # In this model, a known-correspondences EKF filter is implemented. But feel free to implement an
 # unknown correspondence one :)
-#
+# Notice that the Python implementation might be slow, and parameters might be changed by another program. Therefore, making deep copies is necessary
 
 
 import numpy as np
@@ -13,15 +14,15 @@ def wrap_angle_Pi(x):
     min = -np.pi
     return min+ (max - min + ( (x - min) % (max - min) ) ) % (max - min)
 
-#u_t: [v, w]
-#miu_t_1: [x, y, theta, mx1, my1 ... ].T
-#z_t = array of [range, bearing, id]
-#z_t_i = 3x1
-#----------------------------params:
-# delta t
 
 def initialize_ekf_sigma(landmark_num):
     #Initialize sigma for EKF
+    #u_t: [v, w]
+    #miu_t_1: [x, y, theta, mx1, my1 ... ].T
+    #z_t = array of [range, bearing, id]
+    #z_t_i = 3x1
+    #----------------------------params:
+    # delta t
     sigma = np.zeros((2 * landmark_num + 3, 2 * landmark_num + 3))
     for i in range(3, 2 * landmark_num + 3):
         sigma[i, i] = 10000.0
@@ -32,8 +33,6 @@ def initialize_fk(landmark_num):
     for i in range(3):
         F_k[i, i] = 1.0
     return F_k
-
-
 
 
 def theta_2_SO2(theta):

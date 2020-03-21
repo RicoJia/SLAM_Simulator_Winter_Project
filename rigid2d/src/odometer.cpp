@@ -1,5 +1,4 @@
-//
-// Created by ricojia on 1/21/20.
+/// \file
 
 /// \brief Odometry node that publishes messages on both nav_msgs/Odometry and tf tree.
 /// A transform publishes a transform, and a Odometry msg publishes velocity.

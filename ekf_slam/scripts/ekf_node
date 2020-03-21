@@ -295,7 +295,7 @@ class ekf_node(object):
 
             commanded_control_twist = SE2_to_Twist(self.T_control)  #[theta_dot, x_dot, y_dot]
             self.T_control = np.identity(3)
-            delta_t = 1
+            delta_t = 1     #Keep delta_t = 1, as our control input is incremented and is not related to time.
             commanded_control = np.array([ commanded_control_twist[1], commanded_control_twist[0] ]) / delta_t
 
             self.ekf_obj.motion_predict(commanded_control, delta_t)
@@ -310,8 +310,6 @@ class ekf_node(object):
 
             self.Twist_so = SE2_to_Pose_Twist(Tso)
             self.publish_tf()
-            # print"ekf: "
-            # print new_pose_twist
         else:
             self.initialized_delay_applied = True
 
@@ -338,8 +336,4 @@ if __name__ == "__main__":
     except rospy.ROSInterruptException:
         pass
 
-
-#simple test cases:
-# 1. /odom: translation to -1, angle to -pi/2, see if /map -> /odom will generate an inverse for these
-# 2.
 
