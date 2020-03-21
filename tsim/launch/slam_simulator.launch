@@ -9,7 +9,7 @@
 <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
 <!--  launch robot control node -->
-<node name = "TurtleWay" pkg = "tsim"  type = "TurtleWay" output="screen" >
+<node name = "noiseless_control" pkg = "tsim"  type = "noiseless_control" output="screen" >
   <rosparam file="$(find real_world)/config/params.yaml" />
     <remap from="/cmd_vel" to="/turtle1/cmd_vel"/>
 </node>

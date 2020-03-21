@@ -39,11 +39,11 @@ TurtleWay::TurtleWay(ros::NodeHandle& nh, ros::NodeHandle& nh2)
 {
 
     vector<double> waypoints_x, waypoints_y;
-    nh.getParam("/TurtleWay/wheel_base", wheel_base);
-    nh.getParam("/TurtleWay/wheel_radius", wheel_radius);
-    nh.getParam("/TurtleWay/frequency", frequency);
-    nh.getParam("/TurtleWay/waypoints_x", waypoints_x);
-    nh.getParam("/TurtleWay/waypoints_y", waypoints_y);
+    nh2.getParam("wheel_base", wheel_base);
+    nh2.getParam("wheel_radius", wheel_radius);
+    nh2.getParam("frequency", frequency);
+    nh2.getParam("waypoints_x", waypoints_x);
+    nh2.getParam("waypoints_y", waypoints_y);
 
     double rot_vel, trans_vel;
     nh2.getParam("rot_vel", rot_vel);
@@ -72,7 +72,7 @@ void TurtleWay::publish_velocity_commands() {
 
 
 int main(int argc, char** argv){
-    ros::init(argc, argv, "TurtleWay");
+    ros::init(argc, argv, "noiseless_control");
     ros::NodeHandle nh;
     ros::NodeHandle nh2("~");
     TurtleWay turtleway(nh,nh2);

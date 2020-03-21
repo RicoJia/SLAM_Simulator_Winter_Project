@@ -2,38 +2,58 @@
 
 ### Author: Rico Ruotong Jia
 
-This project serves as a light-weight differential drive robot simulator for various SLAM algorithms. 
-
+Do you have a landmark-based SLAM algorithm (UKF, EKF, landmark-based FAST, etc.) and not sure if it really works? In real physical world there are always
+unmodelled factors that make testing difficult. You might also think physics engine, such as Gazebo, are good choices. However, physics engines always come
+with redundant features for SLAM testing, such as many dynamics features. If you're looking to test your SLAM algorithm, 
+come try out this landmark-based SLAM simulator. This project serves as a light-weight differential drive robot simulator that provides all the essentials you need!
 - What is included:
     - Kinematics model of the robot (pose calculation using [screw theory](https://en.wikipedia.org/wiki/Screw_theory))
     - Odometer of the robot, with visualization on Turtlesim and configurable Gaussian noise 
     - 360-degree Lidar Measurement 
-    - Closed loop trajectory following of the robot with turn and go strategy
+    - Customized waypoint-following control with turn and go strategy
     
 - What has not yet been included: 
-    - The slam algorithm part is left for interested users to implement
-    - Collision Detection
-    - Dynamic model of the robot
-    - Noise on Lidar scan measurement 
+    - Collision and Inertial properties of the robot
 
-![Screenshot from 2020-02-10 23-55-39](https://user-images.githubusercontent.com/39393023/74294928-16bece00-4d05-11ea-9538-5effafc6b0f5.png)
+Here is a live demo
+[<img src=https://user-images.githubusercontent.com/39393023/77220187-a5481b80-6b0b-11ea-949b-41cf7ebfe5e9.png width="600">](https://youtu.be/tB5PEmHVFVU)
+
+
 ### Usage of the project 
 
-To successfully run this project, first create the workspace
+a. To successfully run this project, first create the workspace
 ``` 
-cd ~ 
-mkdir -p SLAM_Simulator/src  
+$cd ~ 
+$mkdir -p SLAM_Simulator/src  
 ```
+b.  copy the src directory to ```SLAM_Simulator/src```
 
-then copy the src directory to ```SLAM_Simulator/src```
-
-Build the workspace and run the project 
+c. Build the workspace and run the project 
 ```
 $ cd ~/SLAM_Simulator 
 $ catkin_make
 $ source devel/setup.bash
-$ roslaunch tsim odom turtle_odom.launch 
+$ roslaunch tsim slam_simulator.launch
 ```
+d. **Change all parameters, including differential drive robot, the world, the laser scanner, the filter in [here](../real_world/config/params.yaml).**
+
+e. Check your results. The frames we are interested in are: 
+- /world - The world frame
+- /actual_robot - The actual robot pose with robot visualization 
+- /map - world frame for EKF. Without external drift correction devices such as GPS, this frame coincides with /world
+- /odom - world frame for visualizing odometry of the robot. When there is no nose, this frame coincides with /map. When there is
+noise, the filter should pose the /map to /odom transform so the estimated robot pose could be shown properly. 
+- /estimation - the estimated robot position.
+
+### Tranfomation Tree and Code Structure
+
+##### Transformation Tree
+
+![Screenshot from 2020-03-20 23-20-50](https://user-images.githubusercontent.com/39393023/77219207-82b10500-6b01-11ea-96ce-be3a7cd258ae.png)
+
+##### Code Structure
+
+![Screenshot from 2020-03-20 23-21-00](https://user-images.githubusercontent.com/39393023/77219208-83499b80-6b01-11ea-95e3-57e7dc16a2ad.png)
 
 ### Packages and Key Files
 This project consists of the following four packages: 
@@ -54,4 +74,7 @@ This project consists of the following four packages:
 
  
 - tsim
-    - Motion control node for travelling in a pentagon trajectory using velocity commands (turtle_way.cpp)
+    - Motion control node for travelling in a pentagon trajectory using velocity commands (noiseless_control.cpp)
+
+- ekf_slam
+    - Template EKF SLAM pacakge with known landmark correspondences 

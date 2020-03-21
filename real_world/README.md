@@ -23,4 +23,7 @@ Key assumptions being made here are
 - C++ 17 compiler
 
 ### Usage
-- Change parameters of the differential drive robot in config/params.yaml
+- Change all parameters, including differential drive robot, the world, laser scan, the filter in [here](../real_world/config/params.yaml).
+
+### The node in the overall code structure: 
+![Screenshot from 2020-03-20 22-13-51](https://user-images.githubusercontent.com/39393023/77218324-23022c00-6af8-11ea-8dca-7ef9163b7178.png)

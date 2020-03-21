@@ -8,7 +8,7 @@
 #stddev_z:  standard deviation of observation
 
 miu_vel: [0.0, 0.0]
-stddev_vel: [0.00,0.0]
+stddev_vel: [0.002,0.002]
 miu_z:  [0.0,0.0]
 stddev_z:  [0.0,0.0]
 laser_scan_on: 1
@@ -18,7 +18,7 @@ laser_scan_on: 1
 #waypoints_y: y coordinates of waypointss
 #trans_vel: max translational speed of the robot in m/s
 #rot_vel: max rotational speed of the robot in rad/s
-waypoints_x: [0.0, 0.3, 0.6, 0.9, 1.2]
+waypoints_x: [0.0, 0.3, 0.6, 0.9, 1.5]
 waypoints_y: [0.0, 0.0, 0.0, 0.0, 0.0]
 trans_vel: 0.22
 rot_vel: 2.84
