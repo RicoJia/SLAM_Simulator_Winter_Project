@@ -35,15 +35,22 @@ $ catkin_make
 $ source devel/setup.bash
 $ roslaunch tsim slam_simulator.launch
 ```
-d. **Change all parameters, including differential drive robot, the world, the laser scanner, the filter in [here](../real_world/config/params.yaml).**
+d. In the ekf_slam package, substitute the template filter node - ekf.py with your python filter algorithm. If you were to use ekf_node as the interface between the algorithm and the rest of the system, make sure the you follow the coding guide at the 
+beginning of [ekf_node](ekf_slam/scripts/ekf_node). 
 
-e. Check your results. The frames we are interested in are: 
+e. **Change all parameters, including differential drive robot, the world, the laser scanner, the filter in [here](../real_world/config/params.yaml).**
+
+f. Check your results. The frames we are interested in are: 
 - /world - The world frame
 - /actual_robot - The actual robot pose with robot visualization 
 - /map - world frame for EKF. Without external drift correction devices such as GPS, this frame coincides with /world
 - /odom - world frame for visualizing odometry of the robot. When there is no nose, this frame coincides with /map. When there is
 noise, the filter should pose the /map to /odom transform so the estimated robot pose could be shown properly. 
 - /estimation - the estimated robot position.
+
+g. Validation: when noise is 0, the estimated robot frame should be almost aligned with the actual robot. When the noise is not 0, the estimated robot frame should always "catch up" with the actual robot pose. 
+Due to the low frequency of observation update, the estimated robot frame might "jump". This could be a future improvement as the current 
+python implementation only supports 1 hz observation updates.   
 
 ### Tranfomation Tree and Code Structure
 
@@ -53,7 +60,7 @@ noise, the filter should pose the /map to /odom transform so the estimated robot
 
 ##### Code Structure
 
-![Screenshot from 2020-03-20 23-21-00](https://user-images.githubusercontent.com/39393023/77219208-83499b80-6b01-11ea-95e3-57e7dc16a2ad.png)
+![Screenshot from 2020-03-26 17-59-52](https://user-images.githubusercontent.com/39393023/77704720-b8377180-6f8b-11ea-9a9b-a3b600ce5e84.png)
 
 ### Packages and Key Files
 This project consists of the following four packages: 
@@ -78,3 +85,6 @@ This project consists of the following four packages:
 
 - ekf_slam
     - Template EKF SLAM pacakge with known landmark correspondences 
+
+### References
+The template EKF filter is based on S.Thrun et al's [Probablistic Robotics](http://www.probabilistic-robotics.org/).  

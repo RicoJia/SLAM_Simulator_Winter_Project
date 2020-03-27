@@ -4,6 +4,13 @@ This is the ekf node that filters the pose and the landmark locations, based on 
 How it works:
     a. Subscribe to /odom -> /baselink from odometer, gets the car's pose from odometry, then broadcast TF
     b. Subscribe to /landmarks to get landmark observations, then use EKF to estimate the robot and landmark pose
+
+How to use this code:
+    a. substitute the name of the filter: self.ekf_obj with the name of your filter name
+    b. Have two interface functions:
+        1. self.ekf_obj.measurement_update( self.landmarks) - measurement update callback that takes in a series of landmark measurement ([range1, bearing1], [range2, bearing2] ..), where the state vector of the filter should be [x, y, theta]
+        2. Motion_predict(commanded_control, delta_t), where commanded control is [linear_velocity_increment, angular velocity_increment], and delta_t is 1 as the system integrates control increments from wheel odometry information. The reason for that
+        is to reduce accumulative errors.
 """
 
 import rospy
@@ -191,12 +198,14 @@ class ekf_node(object):
         self.wheel_base = rospy.get_param("~wheel_base")
         self.landmark_num = rospy.get_param("~circular_obstacles_num")
 
-        self.ekf_obj = ekf_object(landmark_num = self.landmark_num)
         rospy.Subscriber("/joint_states", JointState, self.joint_states_callback)
         rospy.Subscriber("/landmarks", LandmarkList, self.landmarks_callback)
         rospy.Subscriber("/odom", Odometry, self.odom_callback)
         self.initialized_delay_applied = False
         self.initialize_pose()
+
+        #TODO: change the name of your filter object!
+        self.ekf_obj = ekf_object(landmark_num = self.landmark_num)
 
     def initialize_pose(self):
         """
@@ -205,6 +214,7 @@ class ekf_node(object):
         rospy.wait_for_service("/RealWorld/get_real_pose")
 
         try:
+            #TODO: Make sure the state vector is [x, y, theta]
             get_real_pose = rospy.ServiceProxy("/RealWorld/get_real_pose", GetRealPose)
             resp1 = get_real_pose()
             self.ekf_obj.miu[0,0] = resp1.x
